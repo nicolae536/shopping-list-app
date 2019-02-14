@@ -2,16 +2,16 @@ import {Form, Item, Input} from 'native-base';
 import * as React from 'react';
 import {View} from 'react-native';
 import {appState} from '../../domain/state';
-import {ListItem, TodoItem} from '../../domain/todoItem';
+import {TodoListableItem, TodoItem} from '../../domain/todoItem';
 import {STYLES} from '../../styles/variables';
 import {ListViewItemAdd} from './list-view-item-add';
 
-export class ListViewItemDetails extends React.Component<any, { activeItem: ListItem, }> {
+export class ListViewItemDetails extends React.Component<any, { activeItem: TodoListableItem, }> {
     static navigationOptions = ({navigation, navigationOptions}) => {
         const {params} = navigation.state;
 
         return {
-            title: 'Title',
+            title: 'Edit',
             /* These values are used instead of the shared configuration! */
             headerStyle: {
                 backgroundColor: STYLES.materialTheme.variables.brandPrimary
@@ -30,12 +30,24 @@ export class ListViewItemDetails extends React.Component<any, { activeItem: List
 
         this.state = {
             activeItem: navigation.getParam('id') === 'new'
-                ? new ListItem()
+                ? new TodoListableItem()
                 : appState.findItem(navigation.getParam('id'))
         };
     }
 
     render() {
+        const items = this.state.activeItem.items.sort((a, b) => {
+            if (a.isDone) {
+                return 1;
+            }
+
+            if (b.isDone) {
+                return -1;
+            }
+
+            return 0
+        });
+
         return <View style={{paddingLeft: 20, paddingRight: 20}}>
             <Form>
                 <Item>
@@ -43,8 +55,7 @@ export class ListViewItemDetails extends React.Component<any, { activeItem: List
                 </Item>
             </Form>
 
-            {this.state.activeItem.items.map((it, idx) => <ListViewItemAdd item={it}
-                                                                           onChange={(newValue) => this.updateItem(idx, newValue)}
+            {items.map((it, idx) => <ListViewItemAdd item={it} onChange={(newValue) => this.updateItem(idx, newValue)}
                                                                            key={it.uuid}/>)
             }
         </View>;

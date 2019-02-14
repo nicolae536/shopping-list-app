@@ -1,12 +1,12 @@
-import {Container, Icon, Content, Fab} from 'native-base';
+import {Container, Icon, Content, Fab, List, ListItem} from 'native-base';
 import * as React from 'react';
+import {Text} from 'react-native';
 import {appState} from '../../domain/state';
-import {ListItem} from '../../domain/todoItem';
+import {TodoListableItem} from '../../domain/todoItem';
 import {STYLES} from '../../styles/variables';
-import {ListView} from '../list-view/list-view';
 
 interface IAppState {
-    items: ListItem[];
+    items: TodoListableItem[];
 }
 
 export default class HomeScreen extends React.Component<any, IAppState> {
@@ -32,14 +32,14 @@ export default class HomeScreen extends React.Component<any, IAppState> {
         super(props, state);
 
         this.state = {
-            items: [...appState.items]
+            items: appState.items || []
         };
 
         this._subscriptions.push(
             appState.select(s => s.items)
                 .subscribe(items => {
                     this.setState({
-                        items: items
+                        items: items || []
                     });
                 })
         );
@@ -52,7 +52,16 @@ export default class HomeScreen extends React.Component<any, IAppState> {
         return (
             <Container>
                 <Content>
-                    <ListView items={this.state.items}/>
+                    <List>
+                        {this.state.items.map(it => {
+                            return <ListItem style={{flex: 1, flexDirection: 'row'}} key={it.uuid} onPress={() => navigate('ItemDetails', {id: it.uuid})}>
+                                <Text>
+                                    {it.title}
+                                </Text>
+                            </ListItem>
+                        })}
+                    </List>
+                    {/*<ListView items={this.state.items}/>*/}
                 </Content>
                 <Fab
                     active={true}

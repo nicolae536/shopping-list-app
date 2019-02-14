@@ -32,6 +32,7 @@ export class ListViewItem extends React.Component<IProps, {}> {
 
     renderScene() {
         const {navigate} = this.props.navigation;
+        console.log(navigate);
         navigate('ItemDetails', {id: this.props.uuid});
     }
 }

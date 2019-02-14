@@ -31,8 +31,6 @@ export class ListViewItemAdd extends React.Component<{ item: TodoItem, onChange:
 
     private updateIsDone() {
         this.state.item.isDone = !this.state.item.isDone;
-        this.setState({
-            item: this.state.item.clone()
-        });
+        this.props.onChange(this.state.item.clone());
     }
 }
