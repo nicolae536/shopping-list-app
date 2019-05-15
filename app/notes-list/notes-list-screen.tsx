@@ -1,20 +1,37 @@
 import {Container, Icon, Content, Fab, List, ListItem} from 'native-base';
 import * as React from 'react';
 import {Text} from 'react-native';
-import {appState} from '../../domain/state';
-import {TodoListableItem} from '../../domain/todoItem';
+import {Subject} from 'rxjs';
+import {NotesList} from '../../domain/notes-list';
+import {appState} from '../../domain/state-container';
 import {STYLES} from '../../styles/variables';
 
 interface IAppState {
-    items: TodoListableItem[];
+    loading: boolean;
+    notesList: NotesList[];
 }
 
-export default class HomeScreen extends React.Component<any, IAppState> {
+export default class NotesListScreen extends React.Component<any, IAppState> {
+    _onDestroy = new Subject();
+
+    constructor(props: any, state: IAppState) {
+        super(props, state);
+        this.state = {
+            loading: true,
+            notesList: []
+        };
+
+        this.state = {
+            notesList: [],
+            loading: true
+        };
+    }
+
     static navigationOptions = ({navigation, navigationOptions}) => {
         const {params} = navigation.state;
 
         return {
-            title: 'Shopping lists',
+            title: 'Note lists',
             /* These values are used instead of the shared configuration! */
             headerStyle: {
                 backgroundColor: STYLES.materialTheme.variables.brandPrimary
@@ -26,42 +43,27 @@ export default class HomeScreen extends React.Component<any, IAppState> {
         };
     };
 
-    _subscriptions: { unSubscribe: () => void }[] = [];
-
-    constructor(props: any, state: IAppState) {
-        super(props, state);
-
-        this.state = {
-            items: appState.items || []
-        };
-
-        this._subscriptions.push(
-            appState.select(s => s.items)
-                .subscribe(items => {
-                    this.setState({
-                        items: items || []
-                    });
-                })
-        );
-    }
-
     render() {
         const materialTheme = STYLES.materialTheme;
         const {navigate} = this.props.navigation;
+
+        if (this.state.loading) {
+            return <Container><Text>Loading</Text></Container>;
+        }
 
         return (
             <Container>
                 <Content>
                     <List>
-                        {this.state.items.map(it => {
-                            return <ListItem style={{flex: 1, flexDirection: 'row'}} key={it.uuid} onPress={() => navigate('ItemDetails', {id: it.uuid})}>
+                        {this.state.notesList.map(it => {
+                            return <ListItem style={{flex: 1, flexDirection: 'row'}} key={it.uuid}
+                                             onPress={() => navigate('ItemDetails', {id: it.uuid})}>
                                 <Text>
                                     {it.title}
                                 </Text>
-                            </ListItem>
+                            </ListItem>;
                         })}
                     </List>
-                    {/*<ListView items={this.state.items}/>*/}
                 </Content>
                 <Fab
                     active={true}
@@ -76,7 +78,19 @@ export default class HomeScreen extends React.Component<any, IAppState> {
         );
     }
 
+    componentDidMount(): void {
+        appState.notesList$()
+            .pipe()
+            .subscribe(notes => {
+                this.setState({
+                    loading: false,
+                    notesList: notes
+                });
+            });
+    }
+
     componentWillUnmount(): void {
-        this._subscriptions.forEach(v => v.unSubscribe());
+        this._onDestroy.next();
+        this._onDestroy.complete();
     }
 }

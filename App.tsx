@@ -2,15 +2,15 @@ import * as Expo from 'expo';
 import {StyleProvider} from 'native-base';
 import * as React from 'react';
 import {createStackNavigator, createAppContainer, NavigationAction, NavigationState} from 'react-navigation';
-import HomeScreen from './components/home/home-screen';
-import {ListViewItemDetails} from './components/list-view-item-details/list-view-item-details';
+import NotesListScreen from './app/notes-list/notes-list-screen';
+import {NotesListDetilsScreen} from './app/notes-list-details/notes-list-detils-screen';
 import {STYLES} from './styles/variables';
 
 const MainNavigator = createStackNavigator({
-    HomeScreen: {screen: HomeScreen},
-    ItemDetails: {screen: ListViewItemDetails}
+    HomeScreen: {screen: NotesListScreen},
+    ItemDetails: {screen: NotesListDetilsScreen}
 }, {
-    initialRouteKey: 'HomeScreen',
+    initialRouteKey: 'NotesListScreen',
 });
 
 const AppNavigator = createAppContainer(MainNavigator);

@@ -10,7 +10,7 @@ interface IProps {
     onToggle?: (item: IProps) => void;
 }
 
-export class ListViewItem extends React.Component<IProps, {}> {
+export class NotesListItemView extends React.Component<IProps, {}> {
     constructor(props, state) {
         super(props, state);
     }

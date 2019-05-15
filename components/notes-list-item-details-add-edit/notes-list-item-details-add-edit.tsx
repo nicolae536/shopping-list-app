@@ -1,8 +1,8 @@
 import {Form, Input, Item, CheckBox} from 'native-base';
 import * as React from 'react';
-import {TodoItem} from '../../domain/todoItem';
+import {NoteItem} from '../../domain/note-item';
 
-export class ListViewItemAdd extends React.Component<{ item: TodoItem, onChange: (it: TodoItem) => void }, { item: TodoItem }> {
+export class NotesListItemDetailsAddEdit extends React.Component<{ item: NoteItem, onChange: (it: NoteItem) => void }, { item: NoteItem }> {
     constructor(props, state) {
         super(props, state);
 
