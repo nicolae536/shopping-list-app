@@ -1,6 +1,7 @@
 import {Button, Form, Input, Item, Label, Text, View} from 'native-base';
 import * as React from 'react';
 import {KeyboardAvoidingView, ScrollView} from 'react-native';
+import {NavigationInjectedProps} from 'react-navigation';
 import {getTextValue, NotesListItemDetailsAddEdit} from '../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 import {NoteItem} from '../../domain/note-item';
 import {NotesList} from '../../domain/notes-list';
@@ -15,7 +16,7 @@ interface NotesListDetailsScreenState {
   activeItem: NotesList;
 }
 
-export class NotesListDetailsScreen extends React.Component<any, NotesListDetailsScreenState> {
+export class NotesListDetailsScreen extends React.Component<NavigationInjectedProps, NotesListDetailsScreenState> {
   static navigationOptions = getNavigationOptions('Edit');
 
   constructor(props, state) {

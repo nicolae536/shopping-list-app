@@ -1,7 +1,7 @@
 import {Container, Content, Fab, Icon, List, ListItem} from 'native-base';
 import * as React from 'react';
 import {Text} from 'react-native';
-import {NavigationScreenProps} from 'react-navigation';
+import {NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
 import {NotesList} from '../../domain/notes-list';
 import {appState} from '../../domain/state-container';
@@ -13,7 +13,7 @@ interface IAppState {
   notesList: NotesList[];
 }
 
-export default class NotesListScreen extends React.Component<NavigationScreenProps<any>, IAppState> {
+export default class NotesListScreen extends React.Component<NavigationInjectedProps, IAppState> {
   static navigationOptions = getNavigationOptions('Notes lists');
   _onDestroy = new Subject();
 
