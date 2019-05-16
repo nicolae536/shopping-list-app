@@ -51,6 +51,7 @@ export class StateContainer {
 
         this.appState.value.notesList = [...notesList];
         this.appState.value.notesList.push(activeItem);
+        this.appState.next(this.appState.value);
         this.serializeToStorage();
     }
 
