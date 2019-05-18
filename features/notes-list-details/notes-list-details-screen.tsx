@@ -46,10 +46,11 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
                     !this.state.activeItem
                         ? <Text>Loading</Text>
                         : <View>
-                            <Form>
+                            <Form style={NotesListDetailsScreenStyle.TitleContainer}>
                                 <Item floatingLabel>
-                                    <Label>{this.state.notesListTitle}</Label>
+                                    <Label style={NotesListDetailsScreenStyle.Title}>{this.state.notesListTitle}</Label>
                                     <Input value={this.state.activeItem.title}
+                                           style={NotesListDetailsScreenStyle.Title}
                                            onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
                                 </Item>
                             </Form>

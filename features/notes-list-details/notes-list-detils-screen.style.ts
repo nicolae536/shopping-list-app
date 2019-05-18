@@ -21,6 +21,10 @@ export const NotesListDetailsScreenStyle = StyleSheet.create({
     ButtonBottom: {
         width: '100%'
     },
+    Title: {
+        fontSize: 20
+    },
     ListItemDivider: {marginTop: 10},
-    ListItem: {paddingTop: 10, paddingBottom: 10}
+    ListItem: {paddingTop: 7, paddingBottom: 7},
+    TitleContainer: {marginBottom: 10}
 });
