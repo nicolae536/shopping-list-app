@@ -10,12 +10,13 @@ export const NotesListItemDetailsAddEditStyle = StyleSheet.create({
     },
     BUTTON_STYLE: {
         position: 'relative',
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         minWidth: 32,
     },
     CHECK_BOX: {
-        marginLeft: '-50%'
+        marginLeft: -16,
+        marginTop: 6
     }
 });

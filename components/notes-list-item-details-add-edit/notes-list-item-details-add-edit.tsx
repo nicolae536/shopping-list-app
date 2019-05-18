@@ -1,6 +1,6 @@
 // import {} from 'react-native-vector-icons/dist/lib';
 import {MaterialIcons} from '@expo/vector-icons';
-import {CheckBox, Form, Input, Item, Button} from 'native-base';
+import {CheckBox, Form, Input, Button} from 'native-base';
 import * as React from 'react';
 import {NotesListItemDetailsAddEditStyle} from './notes-list-item-details-add-edit.style';
 
@@ -38,13 +38,12 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
             {/*<Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>*/}
             {/*    <MaterialIcons size={16} name={'drag-handle'}/>*/}
             {/*</Button>*/}
-            <Item style={NotesListItemDetailsAddEditStyle.INPUT}>
-                <Input onChange={(event) => this.textInputChange(getTextValue(event))}
-                       onFocus={() => this.onFocus()}
-                       onBlur={() => this.onBlur()}
-                       placeholder={this.props.textPlaceholder || ''}
-                       value={this.props.textValue}/>
-            </Item>
+            <Input onChange={(event) => this.textInputChange(getTextValue(event))}
+                   onFocus={() => this.onFocus()}
+                   style={NotesListItemDetailsAddEditStyle.INPUT}
+                   onBlur={() => this.onBlur()}
+                   placeholder={this.props.textPlaceholder || ''}
+                   value={this.props.textValue}/>
             <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE} onPress={() => this.onRemove()}>
                 <MaterialIcons size={16} name={'clear'}/>
             </Button>

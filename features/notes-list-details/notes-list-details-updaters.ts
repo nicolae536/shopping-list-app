@@ -48,7 +48,7 @@ export const notesListDetailsUpdate = {
             }
         });
         appState.activeNotesList!.doneNoteItems = newDoneNoteItems;
-        appState.activeNotesList!.noteItems = newNoteItems;
+        appState.activeNotesList!.noteItems = newNoteItems.sort(NoteItem.noteItemsCompare);
         return appState;
     }),
     removeItem: (it: NoteItem) => stateContainer.pureStateUpdate(appState => {
