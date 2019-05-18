@@ -1,118 +1,88 @@
-import {Button, Form, Input, Item, Label, Text, View} from 'native-base';
+import {Form, Input, Item, Label, Text, View} from 'native-base';
 import * as React from 'react';
 import {KeyboardAvoidingView, ScrollView} from 'react-native';
 import {NavigationInjectedProps} from 'react-navigation';
-import {getTextValue, NotesListItemDetailsAddEdit} from '../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
-import {NoteItem} from '../../domain/note-item';
+import {Subject} from 'rxjs';
+import {takeUntil} from 'rxjs/operators';
+import {
+    getTextValue, NotesListItemDetailsAddEdit
+} from '../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 import {NotesList} from '../../domain/notes-list';
-import {appState} from '../../domain/state-container';
+import {stateContainer} from '../../domain/state-container';
 import {KEYBOARD_AVOID_VIEW_OFFSET} from '../navigation/app-navigation';
 import {getNavigationOptions} from '../navigation/app-navigation-header';
+import {notesListDetailsSelectors} from './notes-list-details-selectors';
+import {notesListDetailsUpdate} from './notes-list-details-updaters';
 import {NotesListDetailsScreenStyle} from './notes-list-detils-screen.style';
 
 interface NotesListDetailsScreenState {
-  saveActionLabel: string;
-  notesListTitle: string;
-  activeItem: NotesList;
+    saveActionLabel: string;
+    notesListTitle: string;
+    activeItem?: NotesList;
 }
 
 export class NotesListDetailsScreen extends React.Component<NavigationInjectedProps, NotesListDetailsScreenState> {
-  static navigationOptions = getNavigationOptions('Edit');
+    static navigationOptions = getNavigationOptions('Edit');
+    onUnMount: Subject<any> = new Subject();
 
-  constructor(props, state) {
-    super(props, state);
+    constructor(props, state) {
+        super(props, state);
 
-    const {navigation} = this.props;
-    const translations = appState.getTranslations();
-    const activeItem = appState.findNotesList(navigation.getParam('id'));
+        const {navigation} = this.props;
+        const translations = stateContainer.getTranslations();
 
-    this.state = {
-      notesListTitle: translations.NOTES_LIST_ITEM.TITLE,
-      saveActionLabel: translations.NOTES_LIST_ITEM.SAVE_ACTION,
-      activeItem: activeItem ? activeItem : new NotesList(),
-    };
-  }
+        this.state = {
+            notesListTitle: translations.NOTES_LIST_ITEM.TITLE,
+            saveActionLabel: translations.NOTES_LIST_ITEM.SAVE_ACTION
+        };
+        notesListDetailsUpdate.activateOrCreateItem(navigation.getParam('id'));
+    }
 
-  render() {
-    return <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={KEYBOARD_AVOID_VIEW_OFFSET} enabled={true}
-                                 style={NotesListDetailsScreenStyle.MainContainer}>
-      <ScrollView>
-        <Form>
-          <Item floatingLabel>
-            <Label>{this.state.notesListTitle}</Label>
-            <Input value={this.state.activeItem.title} onChange={event => this.updateTitle(event)}/>
-          </Item>
-        </Form>
-        {this.state.activeItem.items.map((it, idx) => <NotesListItemDetailsAddEdit
-          checked={it.isDone}
-          textValue={it.description}
-          onCheckboxChange={checked => this.updateNoteChecked(it, checked)}
-          onTextChange={newText => this.updateNoteText(it, newText)}
-          key={it.uuid}/>)
-        }
-      </ScrollView>
-      <View style={NotesListDetailsScreenStyle.BottomView}>
-        <Button
-          onPress={() => this.saveNotesListData()}
-          style={NotesListDetailsScreenStyle.ButtonBottom}><Text>{this.state.saveActionLabel}</Text></Button>
-      </View>
-    </KeyboardAvoidingView>;
-  }
+    render() {
+        return <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={KEYBOARD_AVOID_VIEW_OFFSET} enabled={true}
+                                     style={NotesListDetailsScreenStyle.MainContainer}>
+            <ScrollView>
+                {
+                    !this.state.activeItem
+                        ? <Text>Loading</Text>
+                        : <View>
+                            <Form>
+                                <Item floatingLabel>
+                                    <Label>{this.state.notesListTitle}</Label>
+                                    <Input value={this.state.activeItem.title}
+                                           onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
+                                </Item>
+                            </Form>
+                            {this.state.activeItem.notesItems.map((it, idx) => <NotesListItemDetailsAddEdit
+                                checked={it.isDone}
+                                textValue={it.description}
+                                onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
+                                onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
+                                onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
+                                key={it.uuid}/>)
+                            }
+                        </View>
 
-  componentWillUnmount(): void {
-    // appState.updateOrPushItem(this.state.activeItem);
-  }
+                }
 
-  // private updateItem(idx: number, newValue: NoteItem) {
-  //   this.state.activeItem.items[idx] = newValue;
-  //   this.state.activeItem.items.push(new NoteItem());
-  //
-  //   this.setState({
-  //     activeItem: this.state.activeItem.clone()
-  //   });
-  // }
+            </ScrollView>
+        </KeyboardAvoidingView>;
+    }
 
-  private updateTitle(event: any) {
-    event = getTextValue(event);
-    this.state.activeItem.title = event;
+    componentWillUnmount(): void {
+        this.onUnMount.next();
+        this.onUnMount.complete();
+        notesListDetailsUpdate.cleanState();
+    }
 
-    this.setState({
-      activeItem: this.state.activeItem
-    });
-  }
-
-  private updateNoteChecked(it: NoteItem, checked: boolean) {
-    it.isDone = checked;
-
-    this.sortActiveItem();
-
-    this.setState({
-      activeItem: this.state.activeItem
-    });
-  }
-
-  private sortActiveItem() {
-    this.state.activeItem.items.sort((a, b) => {
-      if (a.isDone) {
-        return 1;
-      }
-
-      if (b.isDone) {
-        return -1;
-      }
-
-      return 0;
-    });
-  }
-
-  private updateNoteText(it: NoteItem, newText: string) {
-    it.description = newText;
-    this.setState({
-      activeItem: this.state.activeItem
-    });
-  }
-
-  private saveNotesListData() {
-    appState.updateOrPushItem(this.state.activeItem);
-  }
+    componentWillMount(): void {
+        notesListDetailsSelectors.activeItem$()
+            .pipe(takeUntil(this.onUnMount))
+            .subscribe(activeItem => {
+                console.log('active-item', activeItem);
+                this.setState({
+                    activeItem: activeItem
+                });
+            });
+    }
 }

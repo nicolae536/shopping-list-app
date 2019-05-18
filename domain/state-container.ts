@@ -1,73 +1,96 @@
 import {AsyncStorage} from 'react-native';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {filter, first, map, distinctUntilChanged, switchMap, takeUntil} from 'rxjs/operators';
-import {AppState, IStateContainerSerialized} from './app-state';
+import {BehaviorSubject, Observable, from, of} from 'rxjs';
+import {filter, first, map, distinctUntilChanged, switchMap, takeUntil, catchError} from 'rxjs/operators';
+import {AppStateModel, IStateContainerSerialized} from './app-state-model';
 import {NotesList} from './notes-list';
+
+function convertToObservable(newState) {
+    if (newState instanceof Observable) {
+        return newState;
+    }
+    if (newState instanceof Promise) {
+        return from(newState);
+    }
+
+    return of(newState);
+}
 
 export class StateContainer {
     private static COLLECTIONS = {
         notesList: '@NotesList'
     };
 
-    private appState: BehaviorSubject<AppState> = new BehaviorSubject(AppState.loadingEmpty());
+    private appState: BehaviorSubject<AppStateModel> = new BehaviorSubject(AppStateModel.loadingEmpty());
 
     constructor() {
         this.deserializeNotesList();
     }
 
     public isReady$() {
-        return this.appState.pipe(filter(c => c !== null), first());
+        return this.appState.pipe(filter(c => c !== null));
+    }
+
+    public isReadyFirst$() {
+        return this.isReady$().pipe(filter(c => c !== null), first());
     }
 
     public notesList$(onUnsubscribe?: Observable<any>) {
         const source = this.isReady$()
             .pipe(switchMap(() =>
-                this.appState.pipe(map(n => n.notesList), distinctUntilChanged())
+                this.appState.pipe(map(n => n.notesItems), distinctUntilChanged())
             ));
         return this.autoUnsubscribe(source, onUnsubscribe);
     }
 
     // @ts-ignore
     public findNotesList(uuid: string): NotesList {
-        for (const it of this.appState.value.notesList) {
+        for (const it of this.appState.value.notesItems) {
             if (it.uuid === uuid) {
                 return it;
             }
         }
     }
 
-    updateOrPushItem(activeItem: NotesList) {
-        let {notesList} = this.appState.value;
+    public pureStateUpdate(pureUpdater: (currentState: AppStateModel) => AppStateModel | Observable<AppStateModel> | Promise<any>) {
+        this.isReadyFirst$()
+            .pipe(
+                first(),
+                filter(appState => {
+                    if (appState.error) {
+                        console.error('Tried to update state when state entered in error');
+                        return false;
+                    }
 
-        for (let idx = 0; idx < notesList.length; idx++) {
-            if (notesList[idx].uuid === activeItem.uuid) {
-                notesList[idx] = activeItem;
-                this.appState.value.notesList = [...notesList];
-                this.appState.next(this.appState.value);
-                this.serializeToStorage();
-                return;
-            }
-        }
+                    return true;
+                }),
+                switchMap(currentState => convertToObservable(pureUpdater(currentState))),
+                catchError(e => {
+                    return of(AppStateModel.error(e));
+                })
+            ).subscribe((newAppState) => {
+            console.log(newAppState);
+            this.serializeToStorage(newAppState);
+            this.appState.next(newAppState);
+        });
+    }
 
-        this.appState.value.notesList = [...notesList];
-        this.appState.value.notesList.push(activeItem);
-        this.appState.next(this.appState.value);
-        this.serializeToStorage();
+    getTranslations() {
+        return this.appState.value.translations;
     }
 
     private async deserializeNotesList() {
         const keys = await AsyncStorage.getAllKeys();
         if (keys.indexOf(StateContainer.COLLECTIONS.notesList) === -1) {
-            this.appState.next(AppState.empty());
+            this.appState.next(AppStateModel.empty());
             return;
         }
 
         try {
             const store = await AsyncStorage.getItem(StateContainer.COLLECTIONS.notesList);
-            this.appState.next(AppState.fromJson(<string>store));
+            this.appState.next(AppStateModel.fromJson(<string>store));
         } catch (e) {
             await AsyncStorage.clear();
-            this.appState.next(AppState.empty());
+            this.appState.next(AppStateModel.empty());
         }
     }
 
@@ -79,18 +102,19 @@ export class StateContainer {
         return source;
     }
 
-    private serializeToStorage() {
+    private serializeToStorage(appState: AppStateModel) {
+        if (appState.error) {
+            return;
+        }
+
         const stateContainerSerialized: IStateContainerSerialized = {
-            notesList: this.appState.value.notesList,
+            notesList: appState.notesItems.filter(n => !n.isEmpty()),
             language: 'en'
         };
 
+        console.log('serialized', stateContainerSerialized);
         AsyncStorage.setItem(StateContainer.COLLECTIONS.notesList, JSON.stringify(stateContainerSerialized));
-    }
-
-    getTranslations() {
-        return this.appState.value.translations;
     }
 }
 
-export const appState: StateContainer = new StateContainer();
+export const stateContainer: StateContainer = new StateContainer();
