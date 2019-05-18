@@ -1,25 +1,45 @@
 import {guid} from './guid-generator';
-import {NoteItem} from './note-item';
+import {NoteItem, SerializedNoteItem} from './note-item';
 import {updateObject} from './updateObject';
+
+export interface SerializedNotesList {
+    title: string;
+    uuid: string;
+    created: Date;
+    noteItems: SerializedNoteItem[];
+    doneNoteItems: SerializedNoteItem[];
+}
 
 export class NotesList {
     title: string = '';
     uuid: string = guid();
     created: Date = new Date();
-    notesItems: NoteItem[] = [new NoteItem()];
+    noteItems: NoteItem[] = [new NoteItem()];
+    doneNoteItems: NoteItem[] = [];
 
     get isDone(): boolean {
-        return this.notesItems.filter(it => !it.isDone).length === 0;
+        return this.noteItems.filter(it => !it.isDone).length === 0;
     };
 
-    static from(it: any) {
+    static from(it: SerializedNotesList) {
         const newIt = new NotesList();
         newIt.uuid = it.uuid;
         newIt.title = it.title;
-        newIt.notesItems = Array.isArray(it.notesItems) ? it.notesItems.map(it1 => NoteItem.from(it1)) : [];
+        newIt.noteItems = Array.isArray(it.noteItems) ? it.noteItems.map(it1 => NoteItem.from(it1)) : [];
+        newIt.doneNoteItems = Array.isArray(it.doneNoteItems) ? it.doneNoteItems.map(it1 => NoteItem.from(it1)) : [];
         newIt.created = it.created ? new Date(it.created) : new Date();
 
         return newIt;
+    }
+
+    toSerialized(): SerializedNotesList {
+        return {
+            uuid: this.uuid,
+            title: this.title,
+            noteItems:this.noteItems.map(it1 => it1.toSerialized()),
+            doneNoteItems: this.doneNoteItems.map(it1 => it1.toSerialized()),
+            created: this.created ? new Date(this.created) : new Date()
+        };
     }
 
     update(newProps: Partial<NotesList>) {
@@ -30,23 +50,14 @@ export class NotesList {
         const newIt = new NotesList();
         newIt.uuid = this.uuid;
         newIt.title = this.title;
-        newIt.notesItems = this.notesItems.map(i => i.clone());
-        newIt.created = this.created;
-
-        return newIt;
-    }
-
-    deepClone() {
-        const newIt = new NotesList();
-        newIt.uuid = this.uuid;
-        newIt.title = this.title;
-        newIt.notesItems = this.notesItems.map(i => i.clone());
+        newIt.noteItems = [...this.noteItems];
+        newIt.doneNoteItems = [...this.doneNoteItems];
         newIt.created = this.created;
 
         return newIt;
     }
 
     isEmpty() {
-        return !this.title || (this.notesItems.length === 1 && !this.notesItems[0].description && !this.notesItems[0].isDone);
+        return !this.title || (this.noteItems.length === 1 && !this.noteItems[0].description && !this.noteItems[0].isDone && !this.doneNoteItems.length);
     }
 }

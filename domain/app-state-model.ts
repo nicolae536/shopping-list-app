@@ -1,11 +1,11 @@
 import {NoteItem} from './note-item';
-import {NotesList} from './notes-list';
+import {NotesList, SerializedNotesList} from './notes-list';
 import {Translations, TranslationsType} from './translations';
 import {updateObject} from './updateObject';
 
 
 export interface IStateContainerSerialized {
-    notesList: Partial<NotesList>[];
+    notesList: SerializedNotesList[];
     language: string;
 }
 

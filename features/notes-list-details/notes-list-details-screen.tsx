@@ -1,4 +1,4 @@
-import {Form, Input, Item, Label, Text, View} from 'native-base';
+import {Form, Input, Item, Label, Text, View, List, ListItem} from 'native-base';
 import * as React from 'react';
 import {KeyboardAvoidingView, ScrollView} from 'react-native';
 import {NavigationInjectedProps} from 'react-navigation';
@@ -53,14 +53,34 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
                                            onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
                                 </Item>
                             </Form>
-                            {this.state.activeItem.notesItems.map((it, idx) => <NotesListItemDetailsAddEdit
-                                checked={it.isDone}
-                                textValue={it.description}
-                                onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
-                                onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
-                                onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
-                                key={it.uuid}/>)
-                            }
+                            <List>
+                                <ListItem itemDivider>
+                                    <Text>{'Not Done Items'}</Text>
+                                </ListItem>
+                                {this.state.activeItem.noteItems.map((it, idx) => <NotesListItemDetailsAddEdit
+                                    checked={it.isDone}
+                                    textValue={it.description}
+                                    onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
+                                    onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
+                                    onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
+                                    onRemove={() => notesListDetailsUpdate.removeItem(it)}
+                                    key={it.uuid}/>)
+                                }
+                                <ListItem itemDivider>
+                                    <Text>{'Done Items'}</Text>
+                                </ListItem>
+                                {
+                                    this.state.activeItem.doneNoteItems
+                                        .map((it, idx) => <NotesListItemDetailsAddEdit
+                                            checked={it.isDone}
+                                            textValue={it.description}
+                                            onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
+                                            onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
+                                            onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
+                                            onRemove={() => notesListDetailsUpdate.removeItem(it)}
+                                            key={it.uuid}/>)
+                                }
+                            </List>
                         </View>
 
                 }

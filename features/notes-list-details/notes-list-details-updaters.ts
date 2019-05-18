@@ -15,11 +15,10 @@ export const notesListDetailsUpdate = {
     }),
     updateNoteItemDescription: (description: string) => stateContainer.pureStateUpdate(appState => {
         if (description.length > 1) {
-            const lastItemIndex = appState.activeNotesList!.notesItems.length - 1;
+            const lastItemIndex = appState.activeNotesList!.noteItems.length - 1;
 
-            if (!appState.activeNotesList!.notesItems[lastItemIndex].isEmpty()) {
-                appState.activeNotesList!.notesItems.push(new NoteItem());
-                // appState.activeNotesList!.notesItems = appState.activeNotesList!.notesItems.sort(NoteItem.noteItemsCompare);
+            if (!appState.activeNotesList!.noteItems[lastItemIndex].isEmpty()) {
+                appState.activeNotesList!.noteItems.push(new NoteItem());
             }
         }
 
@@ -27,8 +26,37 @@ export const notesListDetailsUpdate = {
         return appState;
     }),
     updateNoteItemIsDone: (it: NoteItem, isDone: boolean) => stateContainer.pureStateUpdate(appState => {
+        if (!it.description) {
+            return appState.swallowClone();
+        }
+
         it!.isDone = isDone;
-        appState.activeNotesList!.notesItems = appState.activeNotesList!.notesItems.sort(NoteItem.noteItemsCompare);
+        const newNoteItems: NoteItem[] = [];
+        const newDoneNoteItems: NoteItem[] = [];
+        appState.activeNotesList!.noteItems.forEach(ite => {
+            if (ite.isDone) {
+                newDoneNoteItems.push(ite);
+            } else {
+                newNoteItems.push(ite);
+            }
+        });
+        appState.activeNotesList!.doneNoteItems.forEach(ite => {
+            if (ite.isDone) {
+                newDoneNoteItems.push(ite);
+            } else {
+                newNoteItems.push(ite);
+            }
+        });
+        appState.activeNotesList!.doneNoteItems = newDoneNoteItems;
+        appState.activeNotesList!.noteItems = newNoteItems;
+        return appState;
+    }),
+    removeItem: (it: NoteItem) => stateContainer.pureStateUpdate(appState => {
+        if (it.isDone) {
+            appState.activeNotesList!.doneNoteItems = appState.activeNotesList!.doneNoteItems.filter(v => v.uuid !== it.uuid);
+        } else {
+            appState.activeNotesList!.noteItems = appState.activeNotesList!.noteItems.filter(v => v.uuid !== it.uuid);
+        }
         return appState;
     }),
     cleanState: () => stateContainer.pureStateUpdate(appState => {
@@ -53,11 +81,10 @@ export const notesListDetailsUpdate = {
         });
     }),
     setActiveNodeItem: (it: NoteItem) => stateContainer.pureStateUpdate(appState => {
-        const lastItemIndex = appState.activeNotesList!.notesItems.length - 1;
+        const lastItemIndex = appState.activeNotesList!.noteItems.length - 1;
 
-        if (!appState.activeNotesList!.notesItems[lastItemIndex].isEmpty() && !it.isEmpty()) {
-            appState.activeNotesList!.notesItems.push(new NoteItem());
-            // appState.activeNotesList!.notesItems = appState.activeNotesList!.notesItems.sort(NoteItem.noteItemsCompare);
+        if (!appState.activeNotesList!.noteItems[lastItemIndex].isEmpty() && !it.isEmpty()) {
+            appState.activeNotesList!.noteItems.push(new NoteItem());
         }
 
         return appState.update({

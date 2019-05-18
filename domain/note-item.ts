@@ -1,10 +1,26 @@
 import {guid} from './guid-generator';
 
+export interface SerializedNoteItem {
+    uuid: string;
+    isDone: boolean;
+    description: string;
+    created: Date;
+}
+
 export class NoteItem {
     uuid: string = guid();
     isDone: boolean = false;
     description: string = '';
     created: Date = new Date();
+
+    toSerialized(): SerializedNoteItem {
+        return {
+            uuid: this.uuid,
+            isDone: this.isDone,
+            description: this.description,
+            created: this.created,
+        }
+    }
 
     static noteItemsCompare(a: NoteItem, b: NoteItem) {
         if (a.isDone) {
@@ -26,7 +42,7 @@ export class NoteItem {
         return 0;
     }
 
-    static from(it: any) {
+    static from(it: SerializedNoteItem) {
         const todo = new NoteItem();
         todo.uuid = it.uuid;
         todo.isDone = it.isDone;

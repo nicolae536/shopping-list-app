@@ -3,6 +3,7 @@ import * as React from 'react';
 import {ScrollView, TouchableHighlight} from 'react-native';
 import {NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {NotesList} from '../../domain/notes-list';
 import {stateContainer} from '../../domain/state-container';
 import {STYLES} from '../../styles/variables';
@@ -50,9 +51,9 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
                                     <View style={NotesListScreenStyle.LIST_ITEM_CONTENT_TITLE}><Text>{it.title}</Text></View>
                                     <View style={NotesListScreenStyle.LIST_ITEM_CONTENT_CHILD}>
                                         {
-                                            it.notesItems.map(it => <Text style={NotesListScreenStyle.LIST_ITEM_CONTENT_CHILD_ITEM}
-                                                                          note
-                                                                          key={it.uuid}>
+                                            it.noteItems.map(it => <Text style={NotesListScreenStyle.LIST_ITEM_CONTENT_CHILD_ITEM}
+                                                                         note
+                                                                         key={it.uuid}>
                                                 {it.description}
                                             </Text>)
                                         }
@@ -77,17 +78,20 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
 
     componentDidMount(): void {
         stateContainer.notesList$()
-            .pipe()
+            .pipe(
+                map(notes => notes.map(n => {
+                    const viewValue = n.swallowClone();
+                    viewValue.noteItems = [
+                        ...viewValue.noteItems.filter(v => !v.isEmpty()),
+                        ...viewValue.doneNoteItems.filter(v => !v.isEmpty())
+                    ].splice(0, 6);
+                    return viewValue;
+                }))
+            )
             .subscribe(notes => {
                 this.setState({
                     loading: false,
-                    notesList: notes.map(n => {
-                        const viewValue = n.swallowClone();
-                        viewValue.notesItems = viewValue.notesItems.filter(v => !v.isEmpty()).splice(0, 6);
-                        console.log('notes-list-screen', viewValue);
-                        return viewValue;
-
-                    })
+                    notesList: notes
                 });
             });
     }

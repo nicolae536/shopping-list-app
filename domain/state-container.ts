@@ -108,7 +108,7 @@ export class StateContainer {
         }
 
         const stateContainerSerialized: IStateContainerSerialized = {
-            notesList: appState.notesItems.filter(n => !n.isEmpty()),
+            notesList: appState.notesItems.filter(n => !n.isEmpty()).map(it => it.toSerialized()),
             language: 'en'
         };
 
