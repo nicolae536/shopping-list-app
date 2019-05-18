@@ -1,5 +1,7 @@
 import {CheckBox, Form, Input, Item} from 'native-base';
 import * as React from 'react';
+// import {} from 'react-native-vector-icons/dist/lib';
+import { Ionicons } from '@expo/vector-icons';
 
 interface INotesListItemDetailsProps {
   textPlaceholder?: string;
@@ -40,6 +42,7 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                placeholder={this.props.textPlaceholder || ''}
                value={this.state.text}/>
       </Item>
+      <Ionicons name={'clear'}/>
     </Form>;
   }
 

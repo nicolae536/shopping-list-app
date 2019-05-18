@@ -10,22 +10,24 @@
     "react-devtools": "react-devtools"
   },
   "dependencies": {
-    "@expo/vector-icons": "^9.0.0",
-    "@types/expo": "^32.0.0",
-    "expo": "^32.0.0",
-    "native-base": "^2.11.0",
-    "react": "16.5.0",
+    "@expo/vector-icons": "^10.0.0",
+    "@types/expo": "^32.0.13",
+    "expo": "^32.0.6",
+    "native-base": "^2.12.1",
+    "react": "16.8.6",
     "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
-    "react-navigation": "^3.2.1",
+    "react-navigation": "^3.10.2",
     "rxjs": "^6.5.2",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@types/react": "^16.8.2",
-    "@types/react-native": "^0.57.34",
-    "@types/react-navigation": "^3.0.1",
-    "babel-preset-expo": "^5.0.0",
-    "react-native-typescript-transformer": "^1.2.11",
+    "@types/react": "^16.8.17",
+    "@types/react-native": "^0.57.57",
+    "@types/react-native-vector-icons": "^6.4.0",
+    "@types/react-navigation": "^3.0.7",
+    "babel-preset-expo": "^5.1.1",
+    "react-native-typescript-transformer": "^1.2.12",
+    "schedule": "^0.4.0",
     "typescript": "^3.3.3"
   },
   "private": true
