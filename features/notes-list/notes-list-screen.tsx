@@ -9,7 +9,6 @@ import {NotesList} from '../../domain/notes-list';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {getNavigationOptions} from '../navigation/app-navigation-header';
 import {NoteListItemView} from './note-list-item-view';
-import {NotesListScreenStyle} from './notes-list-screen.style';
 import {notesListSelectors} from './notes-list-selectors';
 import {notesListUpdaters} from './notes-list-updaters';
 
@@ -48,10 +47,9 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
         }
 
         return (
-            // onPress={() => navigate('ItemDetails', {id: it.uuid})}
             <Container>
                 <Content>
-                    <ScrollView style={NotesListScreenStyle.LIST_CONTAINER}>
+                    <ScrollView>
                         {this.state.notesList.map(it => {
                             return <NoteListItemView item={it}
                                                      key={it.uuid}

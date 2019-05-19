@@ -2,6 +2,9 @@
 import {MaterialIcons} from '@expo/vector-icons';
 import {CheckBox, Form, Input, Button} from 'native-base';
 import * as React from 'react';
+import {Dimensions} from 'react-native';
+import {NATIVE_BASE_THEME} from '../../styles/variables';
+import {SwipeActions} from '../swipe-to-remove/swipe-actions';
 import {NotesListItemDetailsAddEditStyle} from './notes-list-item-details-add-edit.style';
 
 interface INotesListItemDetailsProps {
@@ -25,30 +28,35 @@ export function getTextValue(event) {
 }
 
 export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemDetailsProps, INotesListItemDetailsState> {
+    elementWidth = Dimensions.get('window').width;
 
     constructor(props, state) {
         super(props, state);
     }
 
     render() {
-        return <Form style={NotesListItemDetailsAddEditStyle.MAIN_CONTAINER}>
-            <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
-                <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX} checked={this.props.checked}
-                          onPress={() => this.checkboxToggle()}/>
-            </Button>
-            {/*<Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>*/}
-            {/*    <MaterialIcons size={16} name={'drag-handle'}/>*/}
-            {/*</Button>*/}
-            <Input onChange={(event) => this.textInputChange(getTextValue(event))}
-                   onFocus={() => this.onFocus()}
-                   style={NotesListItemDetailsAddEditStyle.INPUT}
-                   onBlur={() => this.onBlur()}
-                   placeholder={this.props.textPlaceholder || ''}
-                   value={this.props.textValue}/>
-            <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE} onPress={() => this.onRemove()}>
-                <MaterialIcons size={16} name={'clear'}/>
-            </Button>
-        </Form>;
+        return <SwipeActions elementWidth={this.elementWidth}
+                             elementBackgroundColor={NATIVE_BASE_THEME.variables.cardDefaultBg}
+                             elementSwipingBackgroundColor={NATIVE_BASE_THEME.variables.brandDanger}
+                             actionIcon={'delete'}
+                             actionIconColor={NATIVE_BASE_THEME.variables.cardDefaultBg}
+                             onSwipeEnd={() => this.onRemove()}>
+            <Form style={NotesListItemDetailsAddEditStyle.MAIN_CONTAINER}>
+                <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
+                    <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX} checked={this.props.checked}
+                              onPress={() => this.checkboxToggle()}/>
+                </Button>
+                <Input onChange={(event) => this.textInputChange(getTextValue(event))}
+                       onFocus={() => this.onFocus()}
+                       style={NotesListItemDetailsAddEditStyle.INPUT}
+                       onBlur={() => this.onBlur()}
+                       placeholder={this.props.textPlaceholder || ''}
+                       value={this.props.textValue}/>
+                <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
+                    <MaterialIcons size={16} name={'drag-handle'}/>
+                </Button>
+            </Form>
+        </SwipeActions>;
     }
 
     private textInputChange(event: string) {
