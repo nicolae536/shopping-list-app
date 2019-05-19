@@ -1,6 +1,6 @@
 // import {} from 'react-native-vector-icons/dist/lib';
 import {MaterialIcons} from '@expo/vector-icons';
-import {CheckBox, Form, Input, Button} from 'native-base';
+import {CheckBox, Form, Input, Button, ListItem} from 'native-base';
 import * as React from 'react';
 import {Dimensions} from 'react-native';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
@@ -41,21 +41,23 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                              actionIcon={'delete'}
                              actionIconColor={NATIVE_BASE_THEME.variables.cardDefaultBg}
                              onSwipeEnd={() => this.onRemove()}>
-            <Form style={NotesListItemDetailsAddEditStyle.MAIN_CONTAINER}>
-                <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
-                    <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX} checked={this.props.checked}
-                              onPress={() => this.checkboxToggle()}/>
-                </Button>
-                <Input onChange={(event) => this.textInputChange(getTextValue(event))}
-                       onFocus={() => this.onFocus()}
-                       style={NotesListItemDetailsAddEditStyle.INPUT}
-                       onBlur={() => this.onBlur()}
-                       placeholder={this.props.textPlaceholder || ''}
-                       value={this.props.textValue}/>
-                <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
-                    <MaterialIcons size={16} name={'drag-handle'}/>
-                </Button>
-            </Form>
+            <ListItem  style={NotesListItemDetailsAddEditStyle.LIST_ITEM}>
+                <Form style={NotesListItemDetailsAddEditStyle.MAIN_CONTAINER}>
+                    <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
+                        <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX} checked={this.props.checked}
+                                  onPress={() => this.checkboxToggle()}/>
+                    </Button>
+                    <Input onChange={(event) => this.textInputChange(getTextValue(event))}
+                           onFocus={() => this.onFocus()}
+                           style={NotesListItemDetailsAddEditStyle.INPUT}
+                           onBlur={() => this.onBlur()}
+                           placeholder={this.props.textPlaceholder || ''}
+                           value={this.props.textValue}/>
+                    <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
+                        <MaterialIcons size={16} name={'drag-handle'}/>
+                    </Button>
+                </Form>
+            </ListItem>
         </SwipeActions>;
     }
 

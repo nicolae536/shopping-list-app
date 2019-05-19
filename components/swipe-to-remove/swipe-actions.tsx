@@ -73,6 +73,9 @@ export class SwipeActions extends PureComponent<SwipeToRemoveProps, SwipeToRemov
     private onPanResponderEnd() {
         const currentPosition = this.state.position.x['_value'];
         const wasFullSwipe = Math.abs(currentPosition) > this.props.elementWidth / 3;
+        this.setState({
+            onSwipeBackgroundColor: this.props.elementBackgroundColor || ''
+        });
         if (!wasFullSwipe) {
             this.state.position.setValue({x: 0, y: 0});
             return;

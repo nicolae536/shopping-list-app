@@ -5,17 +5,17 @@ export const NotesListDetailsScreenStyle = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         paddingTop: (Platform.OS === 'ios') ? 20 : 0,
-        marginBottom: 10,
+        marginBottom: 10
     },
 
     InnerView: {
         flex: 1,
-        flexDirection: 'column',
+        flexDirection: 'column'
     },
 
     BottomView: {
         width: '100%',
-        padding: 10,
+        padding: 10
     },
 
     ButtonBottom: {
@@ -25,6 +25,5 @@ export const NotesListDetailsScreenStyle = StyleSheet.create({
         fontSize: 20
     },
     ListItemDivider: {marginTop: 10},
-    ListItem: {paddingTop: 7, paddingBottom: 7},
     TitleContainer: {marginBottom: 10}
 });

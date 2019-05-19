@@ -59,31 +59,28 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
                                 <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
                                     <Text>{'Not Done Items'}</Text>
                                 </ListItem>
-                                {this.state.activeItem.noteItems.map((it, idx) => <ListItem key={it.uuid}
-                                                                                            style={NotesListDetailsScreenStyle.ListItem}>
-                                    <NotesListItemDetailsAddEdit
-                                        checked={it.isDone}
-                                        textValue={it.description}
-                                        onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
-                                        onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
-                                        onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
-                                        onRemove={() => notesListDetailsUpdate.removeItem(it)}/>
-                                </ListItem>)
+                                {this.state.activeItem.noteItems.map((it, idx) => <NotesListItemDetailsAddEdit
+                                    key={it.uuid}
+                                    checked={it.isDone}
+                                    textValue={it.description}
+                                    onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
+                                    onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
+                                    onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
+                                    onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)
                                 }
                                 <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
                                     <Text>{'Done Items'}</Text>
                                 </ListItem>
                                 {
                                     this.state.activeItem.doneNoteItems
-                                        .map((it, idx) => <ListItem key={it.uuid} style={NotesListDetailsScreenStyle.ListItem}>
-                                            <NotesListItemDetailsAddEdit
-                                                checked={it.isDone}
-                                                textValue={it.description}
-                                                onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
-                                                onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
-                                                onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
-                                                onRemove={() => notesListDetailsUpdate.removeItem(it)}/>
-                                        </ListItem>)
+                                        .map((it, idx) => <NotesListItemDetailsAddEdit
+                                            key={it.uuid}
+                                            checked={it.isDone}
+                                            textValue={it.description}
+                                            onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
+                                            onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
+                                            onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
+                                            onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)
                                 }
                             </List>
                         </View>

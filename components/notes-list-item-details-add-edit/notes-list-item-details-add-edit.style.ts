@@ -16,7 +16,11 @@ export const NotesListItemDetailsAddEditStyle = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minWidth: 32,
+        minWidth: 32
+    },
+    LIST_ITEM: {
+        paddingTop: 7,
+        paddingBottom: 7
     },
     CHECK_BOX: {
         marginLeft: -16,
