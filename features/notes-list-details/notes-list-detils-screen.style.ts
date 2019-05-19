@@ -22,7 +22,8 @@ export const NotesListDetailsScreenStyle = StyleSheet.create({
         width: '100%'
     },
     Title: {
-        fontSize: 20
+        fontSize: 20,
+        marginBottom: 5
     },
     ListItemDivider: {marginTop: 10},
     TitleContainer: {marginBottom: 10}
