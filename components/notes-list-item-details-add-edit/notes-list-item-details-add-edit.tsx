@@ -25,6 +25,7 @@ export function getTextValue(event) {
 }
 
 export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemDetailsProps, INotesListItemDetailsState> {
+
     constructor(props, state) {
         super(props, state);
     }

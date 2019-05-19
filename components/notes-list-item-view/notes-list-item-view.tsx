@@ -1,6 +1,7 @@
 import {Card, CardItem, Body, Icon} from 'native-base';
 import * as React from 'react';
 import {Text} from 'react-native';
+import {loggerInstance} from '../logger';
 
 interface IProps {
     isDone: boolean;
@@ -32,7 +33,7 @@ export class NotesListItemView extends React.Component<IProps, {}> {
 
     renderScene() {
         const {navigate} = this.props.navigation;
-        console.log(navigate);
+        loggerInstance.log('components.NotesListItemView', navigate);
         navigate('ItemDetails', {id: this.props.uuid});
     }
 }

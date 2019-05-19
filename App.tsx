@@ -2,7 +2,7 @@ import * as Expo from 'expo';
 import {StyleProvider} from 'native-base';
 import * as React from 'react';
 import {AppNavigation} from './features/navigation/app-navigation';
-import {STYLES} from './styles/variables';
+import {NATIVE_BASE_THEME} from './styles/variables';
 
 export default class App extends React.Component<any, any> {
   constructor(props, state) {
@@ -10,7 +10,7 @@ export default class App extends React.Component<any, any> {
   }
 
   render() {
-    return <StyleProvider style={STYLES.materialTheme}>
+    return <StyleProvider style={NATIVE_BASE_THEME}>
       <AppNavigation/>
       {/*<AppNavigator ref={nav => {*/}
       {/*  this.navigator = nav;*/}

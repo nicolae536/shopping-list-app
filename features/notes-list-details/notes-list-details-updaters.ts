@@ -1,3 +1,4 @@
+import {loggerInstance} from '../../components/logger';
 import {NoteItem} from '../../domain/note-item';
 import {NotesList} from '../../domain/notes-list';
 import {stateContainer} from '../../domain/state-container';
@@ -9,7 +10,7 @@ export const notesListDetailsUpdate = {
         });
     }),
     updateTitle: (newTitle) => stateContainer.pureStateUpdate(appState => {
-        console.log('title-update');
+        loggerInstance.log('features.NotesListDetailsUpdaters', 'title-update');
         appState.activeNotesList!.title = newTitle;
         return appState;
     }),
@@ -61,23 +62,28 @@ export const notesListDetailsUpdate = {
     }),
     cleanState: () => stateContainer.pureStateUpdate(appState => {
         let wasUpdated = false;
-        appState.notesItems.forEach((v, index) => {
+
+        const newNotesItems = appState.notesItems.map((v, index) => {
             if (v.uuid === appState.activeNotesList!.uuid) {
                 appState.notesItems[index] = appState.activeNotesList!;
                 wasUpdated = true;
+                return appState.activeNotesList!.swallowClone();
             }
+
+            return v;
         });
 
         if (!wasUpdated && !appState.activeNotesList!.isEmpty()) {
-            appState.notesItems.push(appState.activeNotesList!);
+            newNotesItems.push(appState.activeNotesList!);
             wasUpdated = true;
         }
 
-        console.log('was-pushed', wasUpdated);
+        loggerInstance.log('features.NotesListDetailsUpdaters', wasUpdated);
 
         return appState.update({
             activeNoteItem: null,
-            activeNotesList: null
+            activeNotesList: null,
+            notesItems: newNotesItems
         });
     }),
     setActiveNodeItem: (it: NoteItem) => stateContainer.pureStateUpdate(appState => {

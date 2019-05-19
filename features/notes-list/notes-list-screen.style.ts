@@ -2,8 +2,7 @@ import {StyleSheet} from 'react-native';
 
 export const NotesListScreenStyle = StyleSheet.create({
     LIST_CONTAINER: {
-        marginLeft: 15,
-        marginRight: 15
+
     },
     LIST_ITEM_CARD: {
         flexDirection: 'column',

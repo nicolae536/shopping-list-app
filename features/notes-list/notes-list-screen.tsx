@@ -1,14 +1,17 @@
-import {Container, Content, Fab, Icon, Text, View} from 'native-base';
+import {Container, Content, Fab, Icon, Text} from 'native-base';
 import * as React from 'react';
-import {ScrollView, TouchableHighlight} from 'react-native';
+import {ScrollView, PanResponderInstance, PanResponder} from 'react-native';
 import {NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {takeUntil} from 'rxjs/operators';
+import {loggerInstance} from '../../components/logger';
 import {NotesList} from '../../domain/notes-list';
-import {stateContainer} from '../../domain/state-container';
-import {STYLES} from '../../styles/variables';
+import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {getNavigationOptions} from '../navigation/app-navigation-header';
+import {NoteListItemView} from './note-list-item-view';
 import {NotesListScreenStyle} from './notes-list-screen.style';
+import {notesListSelectors} from './notes-list-selectors';
+import {notesListUpdaters} from './notes-list-updaters';
 
 interface IAppState {
     loading: boolean;
@@ -18,6 +21,7 @@ interface IAppState {
 export default class NotesListScreen extends React.Component<NavigationInjectedProps, IAppState> {
     static navigationOptions = getNavigationOptions('Notes lists');
     _onDestroy = new Subject();
+    private _panResponder: PanResponderInstance;
 
     constructor(props: any, state: IAppState) {
         super(props, state);
@@ -26,14 +30,17 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
             notesList: []
         };
 
-        this.state = {
-            notesList: [],
-            loading: true
-        };
+
+        loggerInstance.activateLogger('components.NotesListScreen._panResponder');
+        this._panResponder = PanResponder.create({
+            onStartShouldSetPanResponder: (ev, gesture) => true,
+            onPanResponderMove: (ev, gesture) => {
+                loggerInstance.log('components.NotesListScreen._panResponder', ev, gesture);
+            }
+        });
     }
 
     render() {
-        const materialTheme = STYLES.materialTheme;
         const {navigate} = this.props.navigation;
 
         if (this.state.loading) {
@@ -41,25 +48,15 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
         }
 
         return (
+            // onPress={() => navigate('ItemDetails', {id: it.uuid})}
             <Container>
                 <Content>
                     <ScrollView style={NotesListScreenStyle.LIST_CONTAINER}>
                         {this.state.notesList.map(it => {
-                            return <TouchableHighlight onPress={() => navigate('ItemDetails', {id: it.uuid})}
-                                                       key={it.uuid}>
-                                <View style={NotesListScreenStyle.LIST_ITEM_CARD}>
-                                    <View style={NotesListScreenStyle.LIST_ITEM_CONTENT_TITLE}><Text>{it.title}</Text></View>
-                                    <View style={NotesListScreenStyle.LIST_ITEM_CONTENT_CHILD}>
-                                        {
-                                            it.noteItems.map(it => <Text style={NotesListScreenStyle.LIST_ITEM_CONTENT_CHILD_ITEM}
-                                                                         note
-                                                                         key={it.uuid}>
-                                                {it.description}
-                                            </Text>)
-                                        }
-                                    </View>
-                                </View>
-                            </TouchableHighlight>;
+                            return <NoteListItemView item={it}
+                                                     key={it.uuid}
+                                                     onRemove={() => notesListUpdaters.removeItem(it)}
+                                                     onTap={() => navigate('ItemDetails', {id: it.uuid})}/>;
                         })}
                     </ScrollView>
                 </Content>
@@ -67,7 +64,7 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
                     active={true}
                     direction="up"
                     containerStyle={{}}
-                    style={{backgroundColor: materialTheme.variables.brandPrimary}}
+                    style={{backgroundColor: NATIVE_BASE_THEME.variables.brandPrimary}}
                     position="bottomRight"
                     onPress={() => navigate('ItemDetails', {id: 'new'})}>
                     <Icon name="add"/>
@@ -77,17 +74,8 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
     }
 
     componentDidMount(): void {
-        stateContainer.notesList$()
-            .pipe(
-                map(notes => notes.map(n => {
-                    const viewValue = n.swallowClone();
-                    viewValue.noteItems = [
-                        ...viewValue.noteItems.filter(v => !v.isEmpty()),
-                        ...viewValue.doneNoteItems.filter(v => !v.isEmpty())
-                    ].splice(0, 6);
-                    return viewValue;
-                }))
-            )
+        notesListSelectors.notesListView$()
+            .pipe(takeUntil(this._onDestroy))
             .subscribe(notes => {
                 this.setState({
                     loading: false,

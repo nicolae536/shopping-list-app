@@ -4,6 +4,7 @@ import {KeyboardAvoidingView, ScrollView} from 'react-native';
 import {NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
+import {loggerInstance} from '../../components/logger';
 import {
     getTextValue, NotesListItemDetailsAddEdit
 } from '../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
@@ -55,10 +56,11 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
                                 </Item>
                             </Form>
                             <List>
-                                <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider} >
+                                <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
                                     <Text>{'Not Done Items'}</Text>
                                 </ListItem>
-                                {this.state.activeItem.noteItems.map((it, idx) => <ListItem key={it.uuid} style={NotesListDetailsScreenStyle.ListItem}>
+                                {this.state.activeItem.noteItems.map((it, idx) => <ListItem key={it.uuid}
+                                                                                            style={NotesListDetailsScreenStyle.ListItem}>
                                     <NotesListItemDetailsAddEdit
                                         checked={it.isDone}
                                         textValue={it.description}
@@ -68,7 +70,7 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
                                         onRemove={() => notesListDetailsUpdate.removeItem(it)}/>
                                 </ListItem>)
                                 }
-                                <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider} >
+                                <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
                                     <Text>{'Done Items'}</Text>
                                 </ListItem>
                                 {
@@ -102,7 +104,7 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
         notesListDetailsSelectors.activeItem$()
             .pipe(takeUntil(this.onUnMount))
             .subscribe(activeItem => {
-                console.log('active-item', activeItem);
+                loggerInstance.log('features.notes-list-details.NotesListDetailsScreen', 'active-item', activeItem);
                 this.setState({
                     activeItem: activeItem
                 });

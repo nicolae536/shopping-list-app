@@ -1,6 +1,7 @@
 import {AsyncStorage} from 'react-native';
 import {BehaviorSubject, Observable, from, of} from 'rxjs';
 import {filter, first, map, distinctUntilChanged, switchMap, takeUntil, catchError} from 'rxjs/operators';
+import {loggerInstance} from '../components/logger';
 import {AppStateModel, IStateContainerSerialized} from './app-state-model';
 import {NotesList} from './notes-list';
 
@@ -68,7 +69,7 @@ export class StateContainer {
                     return of(AppStateModel.error(e));
                 })
             ).subscribe((newAppState) => {
-            console.log(newAppState);
+            loggerInstance.log('domain.StateContainer', newAppState);
             this.serializeToStorage(newAppState);
             this.appState.next(newAppState);
         });
@@ -112,7 +113,7 @@ export class StateContainer {
             language: 'en'
         };
 
-        console.log('serialized', stateContainerSerialized);
+        loggerInstance.log('serialized', stateContainerSerialized);
         AsyncStorage.setItem(StateContainer.COLLECTIONS.notesList, JSON.stringify(stateContainerSerialized));
     }
 }

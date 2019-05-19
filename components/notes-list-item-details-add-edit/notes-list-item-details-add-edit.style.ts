@@ -4,6 +4,9 @@ export const NotesListItemDetailsAddEditStyle = StyleSheet.create({
     MAIN_CONTAINER: {
         flexDirection: 'row', alignItems: 'center'
     },
+    MAIN_INNER_CONTAINER: {
+        flexDirection: 'row', alignItems: 'center'
+    },
     INPUT: {
         flex: 1,
         flexShrink: 1

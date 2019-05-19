@@ -1,3 +1,4 @@
+import {loggerInstance} from '../components/logger';
 import {NoteItem} from './note-item';
 import {NotesList, SerializedNotesList} from './notes-list';
 import {Translations, TranslationsType} from './translations';
@@ -43,7 +44,7 @@ export class AppStateModel {
         const appState = new AppStateModel();
         appState.error = true;
         appState.errorDetails = errorDetails;
-        console.log(errorDetails);
+        loggerInstance.error('domain.AppStateModel', errorDetails);
         return appState;
     }
 
