@@ -1,6 +1,7 @@
 import {Form, Input, Item, Label, Text, View, List, ListItem} from 'native-base';
 import * as React from 'react';
-import {KeyboardAvoidingView, ScrollView} from 'react-native';
+import {Component} from 'react';
+import {KeyboardAvoidingView, ScrollView, Keyboard, EmitterSubscription} from 'react-native';
 import {NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
@@ -20,11 +21,16 @@ interface NotesListDetailsScreenState {
     saveActionLabel: string;
     notesListTitle: string;
     activeItem?: NotesList;
+    isKeyboardOpen: boolean;
 }
 
-export class NotesListDetailsScreen extends React.Component<NavigationInjectedProps, NotesListDetailsScreenState> {
+export class NotesListDetailsScreen extends Component<NavigationInjectedProps, NotesListDetailsScreenState> {
     static navigationOptions = getNavigationOptions('Edit');
     onUnMount: Subject<any> = new Subject();
+    // @ts-ignore
+    private keyboardDidShowListener: EmitterSubscription;
+    // @ts-ignore
+    private keyboardDidHideListener: EmitterSubscription;
 
     constructor(props, state) {
         super(props, state);
@@ -33,6 +39,7 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
         const translations = stateContainer.getTranslations();
 
         this.state = {
+            isKeyboardOpen: false,
             notesListTitle: translations.NOTES_LIST_ITEM.TITLE,
             saveActionLabel: translations.NOTES_LIST_ITEM.SAVE_ACTION
         };
@@ -59,27 +66,29 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
                                 <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
                                     <Text>{'Not Done Items'}</Text>
                                 </ListItem>
-                                {this.state.activeItem.noteItems.map((it, idx) => <NotesListItemDetailsAddEdit
+                                {this.state.activeItem!.noteItems.map((it, idx) => <NotesListItemDetailsAddEdit
                                     key={it.uuid}
+                                    canRemove={!it.isEmpty && !this.state.isKeyboardOpen}
                                     checked={it.isDone}
                                     textValue={it.description}
                                     onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
                                     onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
-                                    onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
+                                    onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(idx, newText)}
                                     onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)
                                 }
                                 <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
                                     <Text>{'Done Items'}</Text>
                                 </ListItem>
                                 {
-                                    this.state.activeItem.doneNoteItems
+                                    this.state.activeItem!.doneNoteItems
                                         .map((it, idx) => <NotesListItemDetailsAddEdit
                                             key={it.uuid}
+                                            canRemove={!this.state.isKeyboardOpen}
                                             checked={it.isDone}
                                             textValue={it.description}
                                             onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
                                             onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
-                                            onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(newText)}
+                                            onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(idx, newText)}
                                             onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)
                                 }
                             </List>
@@ -95,6 +104,8 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
         this.onUnMount.next();
         this.onUnMount.complete();
         notesListDetailsUpdate.cleanState();
+        this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener.remove();
     }
 
     componentWillMount(): void {
@@ -106,5 +117,26 @@ export class NotesListDetailsScreen extends React.Component<NavigationInjectedPr
                     activeItem: activeItem
                 });
             });
+
+        this.keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            this._keyboardDidShow.bind(this)
+        );
+        this.keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            this._keyboardDidHide.bind(this)
+        );
+    }
+
+    private _keyboardDidShow() {
+        this.setState({
+            isKeyboardOpen: true
+        });
+    }
+
+    private _keyboardDidHide() {
+        this.setState({
+            isKeyboardOpen: false
+        });
     }
 }

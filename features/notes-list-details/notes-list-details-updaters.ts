@@ -5,30 +5,43 @@ import {stateContainer} from '../../domain/state-container';
 
 export const notesListDetailsUpdate = {
     activateOrCreateItem: (uuid: string) => stateContainer.pureStateUpdate(appState => {
+        const itemToActivate = appState.notesItems.find(n => n.uuid === uuid);
         return appState.update({
-            activeNotesList: appState.notesItems.find(n => n.uuid === uuid) || new NotesList()
+            activeNotesList: itemToActivate ? itemToActivate.swallowClone() : new NotesList()
         });
     }),
     updateTitle: (newTitle) => stateContainer.pureStateUpdate(appState => {
-        loggerInstance.log('features.NotesListDetailsUpdaters', 'title-update');
-        appState.activeNotesList!.title = newTitle;
-        return appState;
+        return appState.update({
+            activeNotesList: appState.activeNotesList!.update({
+                title: newTitle
+            })
+        });
     }),
-    updateNoteItemDescription: (description: string) => stateContainer.pureStateUpdate(appState => {
-        if (description.length > 1) {
-            const lastItemIndex = appState.activeNotesList!.noteItems.length - 1;
+    updateNoteItemDescription: (itemIndex: number, description: string) => stateContainer.pureStateUpdate(appState => {
+        const updatedNoteItem = appState.activeNoteItem!.update({
+            description
+        });
 
-            if (!appState.activeNotesList!.noteItems[lastItemIndex].isEmpty()) {
-                appState.activeNotesList!.noteItems.push(new NoteItem());
-            }
+        const isLastItemNotEmpty = description.length > 1 && itemIndex + 1 === appState.activeNotesList!.noteItems.length;
+        const newNoteItems = appState.activeNotesList!.noteItems.map(it => {
+            return it.uuid === updatedNoteItem.uuid
+                ? updatedNoteItem
+                : it.clone();
+        });
+        if (isLastItemNotEmpty) {
+            newNoteItems.push(new NoteItem());
         }
 
-        appState.activeNoteItem!.description = description;
-        return appState;
+        return appState.update({
+            activeNotesList: appState.activeNotesList!.update({
+                noteItems: newNoteItems
+            }),
+            activeNoteItem: updatedNoteItem
+        });
     }),
     updateNoteItemIsDone: (it: NoteItem, isDone: boolean) => stateContainer.pureStateUpdate(appState => {
         if (!it.description) {
-            return appState.swallowClone();
+            return appState;
         }
 
         it!.isDone = isDone;
@@ -48,17 +61,27 @@ export const notesListDetailsUpdate = {
                 newNoteItems.push(ite);
             }
         });
-        appState.activeNotesList!.doneNoteItems = newDoneNoteItems;
-        appState.activeNotesList!.noteItems = newNoteItems.sort(NoteItem.noteItemsCompare);
-        return appState;
+        newNoteItems.sort(NoteItem.noteItemsCompare);
+        return appState.update({
+            activeNotesList: appState.activeNotesList!.update({
+                noteItems: newNoteItems,
+                doneNoteItems: newDoneNoteItems
+            })
+        });
     }),
     removeItem: (it: NoteItem) => stateContainer.pureStateUpdate(appState => {
+        let {doneNoteItems, noteItems} = appState.activeNotesList!;
         if (it.isDone) {
-            appState.activeNotesList!.doneNoteItems = appState.activeNotesList!.doneNoteItems.filter(v => v.uuid !== it.uuid);
+            doneNoteItems = doneNoteItems.filter(v => v.uuid !== it.uuid);
         } else {
-            appState.activeNotesList!.noteItems = appState.activeNotesList!.noteItems.filter(v => v.uuid !== it.uuid);
+            noteItems = noteItems.filter(v => v.uuid !== it.uuid);
         }
-        return appState;
+        return appState.update({
+            activeNotesList: appState.activeNotesList!.update({
+                doneNoteItems: doneNoteItems,
+                noteItems: noteItems
+            })
+        });
     }),
     cleanState: () => stateContainer.pureStateUpdate(appState => {
         let wasUpdated = false;
@@ -89,7 +112,7 @@ export const notesListDetailsUpdate = {
     setActiveNodeItem: (it: NoteItem) => stateContainer.pureStateUpdate(appState => {
         const lastItemIndex = appState.activeNotesList!.noteItems.length - 1;
 
-        if (!appState.activeNotesList!.noteItems[lastItemIndex].isEmpty() && !it.isEmpty()) {
+        if (!appState.activeNotesList!.noteItems[lastItemIndex].isEmpty && !it.isEmpty) {
             appState.activeNotesList!.noteItems.push(new NoteItem());
         }
 

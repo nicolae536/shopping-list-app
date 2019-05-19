@@ -14,6 +14,9 @@ interface SwipeToRemoveProps {
     actionIconSwipeLeftColor?: string;
     actionIconSwipeRight?: string;
     actionIconSwipeRightColor?: string;
+    enableSwipe?: boolean;
+    enableSwipeLeft?: boolean;
+    enableSwipeRight?: boolean;
     onSwipeEnd?: () => void;
     onSwipeLeftEnd?: () => void;
     onSwipeRightEnd?: () => void;
@@ -22,6 +25,9 @@ interface SwipeToRemoveProps {
 interface SwipeToRemoveState {
     position: Animated.ValueXY;
     onSwipeBackgroundColor: string;
+    enableSwipe: boolean;
+    enableSwipeLeft: boolean;
+    enableSwipeRight: boolean;
 }
 
 export class SwipeActions extends PureComponent<SwipeToRemoveProps, SwipeToRemoveState> {
@@ -40,8 +46,12 @@ export class SwipeActions extends PureComponent<SwipeToRemoveProps, SwipeToRemov
 
         this.state = {
             position: position,
-            onSwipeBackgroundColor: this.props.elementBackgroundColor || ''
+            ...this.swipeSettingsFromProps(this.props)
         };
+    }
+
+    componentWillReceiveProps(nextProps: Readonly<SwipeToRemoveProps>, nextContext: any): void {
+        this.setState(this.swipeSettingsFromProps(nextProps));
     }
 
     render() {
@@ -99,10 +109,30 @@ export class SwipeActions extends PureComponent<SwipeToRemoveProps, SwipeToRemov
         this.setState({
             onSwipeBackgroundColor: this.props.elementSwipingBackgroundColor || ''
         });
-        return Math.abs(gesture.dx) > 3;
+        const isThresholdExceeded = Math.abs(gesture.dx) > 3;
+        return (isThresholdExceeded && this.state.enableSwipe) ||
+            (isThresholdExceeded && this.state.enableSwipeLeft && gesture.dx < 0) ||
+            (isThresholdExceeded && this.state.enableSwipeRight && gesture.dx > 0);
     }
 
     private onMoveShouldSetPanResponderCapture(ev: GestureResponderEvent, gesture: PanResponderGestureState) {
-        return Math.abs(gesture.dx) > 5;
+        const isThresholdExceeded = Math.abs(gesture.dx) > 5;
+        return (isThresholdExceeded && this.state.enableSwipe) ||
+            (isThresholdExceeded && this.state.enableSwipeLeft && gesture.dx < 0) ||
+            (isThresholdExceeded && this.state.enableSwipeRight && gesture.dx > 0);
+    }
+
+    private swipeSettingsFromProps(nextProps: Readonly<SwipeToRemoveProps>) {
+        const enableSwipeValue = !!nextProps.enableSwipe;
+        const enableSwipeLeftValue = !!nextProps.enableSwipeLeft;
+        const enableSwipeRightValue = !!nextProps.enableSwipeRight;
+        const isSwipeEnabled = nextProps.hasOwnProperty('enableSwipe') ? enableSwipeValue : true;
+
+        return {
+            onSwipeBackgroundColor: nextProps.elementBackgroundColor || '',
+            enableSwipe: isSwipeEnabled,
+            enableSwipeLeft: nextProps.hasOwnProperty('enableSwipeLeft') ? enableSwipeLeftValue : isSwipeEnabled,
+            enableSwipeRight: nextProps.hasOwnProperty('enableSwipeRight') ? enableSwipeRightValue : isSwipeEnabled
+        };
     }
 }

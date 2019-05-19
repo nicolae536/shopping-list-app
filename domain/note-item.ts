@@ -1,4 +1,5 @@
 import {guid} from './guid-generator';
+import {updateObject} from './updateObject';
 
 export interface SerializedNoteItem {
     uuid: string;
@@ -10,16 +11,18 @@ export interface SerializedNoteItem {
 export class NoteItem {
     uuid: string = guid();
     isDone: boolean = false;
-    description: string = '';
     created: Date = new Date();
+    isEmpty: boolean = true;
 
-    toSerialized(): SerializedNoteItem {
-        return {
-            uuid: this.uuid,
-            isDone: this.isDone,
-            description: this.description,
-            created: this.created,
-        }
+    private _description: string = '';
+
+    get description() {
+        return this._description;
+    };
+
+    set description(value: any) {
+        this._description = value;
+        this.isEmpty = this.description === '';
     }
 
     static noteItemsCompare(a: NoteItem, b: NoteItem) {
@@ -31,11 +34,11 @@ export class NoteItem {
             return -1;
         }
 
-        if (a.isEmpty()) {
+        if (a.isEmpty) {
             return 1;
         }
 
-        if (b.isEmpty()) {
+        if (b.isEmpty) {
             return -1;
         }
 
@@ -51,8 +54,17 @@ export class NoteItem {
         return todo;
     }
 
-    isEmpty() {
-        return this.description === '';
+    update(newProps: Partial<NoteItem> & { description: string }) {
+        return updateObject(this, newProps, this.clone.bind(this));
+    }
+
+    toSerialized(): SerializedNoteItem {
+        return {
+            uuid: this.uuid,
+            isDone: this.isDone,
+            description: this.description,
+            created: this.created
+        };
     }
 
     clone() {

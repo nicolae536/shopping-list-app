@@ -11,6 +11,7 @@ interface INotesListItemDetailsProps {
     textPlaceholder?: string;
     textValue: string;
     checked: boolean;
+    canRemove: boolean;
     onCheckboxChange?: (value: boolean) => void;
     onTextChange?: (value: string) => void;
     onTextFocus?: () => void;
@@ -39,9 +40,10 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                              elementBackgroundColor={NATIVE_BASE_THEME.variables.cardDefaultBg}
                              elementSwipingBackgroundColor={NATIVE_BASE_THEME.variables.brandDanger}
                              actionIcon={'delete'}
+                             enableSwipe={this.props.canRemove}
                              actionIconColor={NATIVE_BASE_THEME.variables.cardDefaultBg}
                              onSwipeEnd={() => this.onRemove()}>
-            <ListItem  style={NotesListItemDetailsAddEditStyle.LIST_ITEM}>
+            <ListItem style={NotesListItemDetailsAddEditStyle.LIST_ITEM}>
                 <Form style={NotesListItemDetailsAddEditStyle.MAIN_CONTAINER}>
                     <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
                         <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX} checked={this.props.checked}
