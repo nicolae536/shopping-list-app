@@ -59,7 +59,8 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            value={this.props.textValue}/>
                     <View>
                         <TouchableOpacity style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
-                                          onLongPress={() => this.handleLongPress()}
+                                          delayLongPress={50}
+                                          onPressIn={() => this.handleLongPress()}
                                           onPressOut={() => this.handlePressOut()}>
                             <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
                                                     name={'arrow-split-horizontal'}/>
