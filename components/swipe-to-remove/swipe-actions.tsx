@@ -109,14 +109,14 @@ export class SwipeActions extends PureComponent<SwipeToRemoveProps, SwipeToRemov
         this.setState({
             onSwipeBackgroundColor: this.props.elementSwipingBackgroundColor || ''
         });
-        const isThresholdExceeded = Math.abs(gesture.dx) > 3;
+        const isThresholdExceeded = Math.abs(gesture.dx) > 10;
         return (isThresholdExceeded && this.state.enableSwipe) ||
             (isThresholdExceeded && this.state.enableSwipeLeft && gesture.dx < 0) ||
             (isThresholdExceeded && this.state.enableSwipeRight && gesture.dx > 0);
     }
 
     private onMoveShouldSetPanResponderCapture(ev: GestureResponderEvent, gesture: PanResponderGestureState) {
-        const isThresholdExceeded = Math.abs(gesture.dx) > 5;
+        const isThresholdExceeded = Math.abs(gesture.dx) > 10;
         return (isThresholdExceeded && this.state.enableSwipe) ||
             (isThresholdExceeded && this.state.enableSwipeLeft && gesture.dx < 0) ||
             (isThresholdExceeded && this.state.enableSwipeRight && gesture.dx > 0);

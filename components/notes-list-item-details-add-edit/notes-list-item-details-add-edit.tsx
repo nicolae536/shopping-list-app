@@ -17,6 +17,8 @@ interface INotesListItemDetailsProps {
     onTextFocus?: () => void;
     onTextBlur?: () => void;
     onRemove?: () => void;
+    onLongPress?: () => void;
+    onPressOut?: () => void;
     sortHandlers?: any;
 }
 
@@ -57,7 +59,8 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            placeholder={this.props.textPlaceholder || ''}
                            value={this.props.textValue}/>
                     <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}
-
+                            onLongPress={() => this.handleLongPress()}
+                            onPressOut={() => this.handlePressOut()}
                             {...this.props.sortHandlers}>
                         <MaterialIcons size={32} name={'drag-handle'}/>
                     </Button>
@@ -93,6 +96,18 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
     private onRemove() {
         if (this.props.onRemove) {
             this.props.onRemove();
+        }
+    }
+
+    private handleLongPress() {
+        if (this.props.onLongPress) {
+            this.props.onLongPress();
+        }
+    }
+
+    private handlePressOut() {
+        if (this.props.onPressOut) {
+            this.props.onPressOut();
         }
     }
 }

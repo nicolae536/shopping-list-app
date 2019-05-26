@@ -2,7 +2,7 @@ import {Text, View, Form, Item, Label, Input, ListItem, List, Container, Footer,
 import * as React from 'react';
 import {Component} from 'react';
 import {EmitterSubscription, ScrollView, Keyboard, KeyboardAvoidingView} from 'react-native';
-import SortableListView from 'react-native-sortable-listview';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 import {NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
@@ -104,7 +104,6 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
     }
 
     private renderTab1 = () => {
-        const order = Object.keys(this.state.activeItem!.noteItems);
         return <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={KEYBOARD_AVOID_VIEW_OFFSET}
                                      enabled={true}
                                      style={NotesListDetailsScreenStyle.MainContainer}>
@@ -121,22 +120,21 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
                 <Text>{'Not Done Items'}</Text>
             </ListItem>
 
-            <SortableListView data={this.state.activeItem!.noteItems}
-                              order={order}
-                              style={{flex: 1}}
-                              onRowMoved={e => {
-                                  order.splice(e.to, 0, order.splice(e.from, 1)[0]);
-                                  this.forceUpdate();
-                              }}
-                              renderRow={(row, index) => <NotesListItemDetailsAddEdit
-                                  key={row.uuid}
-                                  canRemove={!row.isEmpty && !this.state.isKeyboardOpen}
-                                  checked={row.isDone}
-                                  textValue={row.description}
-                                  onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(row)}
-                                  onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(row, checked)}
-                                  onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(index, newText)}
-                                  onRemove={() => notesListDetailsUpdate.removeItem(row)}/>}
+            <DraggableFlatList data={this.state.activeItem!.noteItems}
+                               style={{flex: 1}}
+                               keyExtractor={(item) => item.uuid}
+                               scrollPercent={5}
+                               renderItem={({item, index, move, moveEnd, isActive}) =>
+                                   <NotesListItemDetailsAddEdit key={item.uuid}
+                                                                canRemove={!item.isEmpty && !this.state.isKeyboardOpen}
+                                                                checked={item.isDone}
+                                                                textValue={item.description}
+                                                                onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(item)}
+                                                                onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(item, checked)}
+                                                                onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(index, newText)}
+                                                                onLongPress={move}
+                                                                onPressOut={moveEnd}
+                                                                onRemove={() => notesListDetailsUpdate.removeItem(item)}/>}
             />
         </KeyboardAvoidingView>;
     };
