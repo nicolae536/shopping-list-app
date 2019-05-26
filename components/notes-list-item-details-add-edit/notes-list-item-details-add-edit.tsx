@@ -17,6 +17,7 @@ interface INotesListItemDetailsProps {
     onTextFocus?: () => void;
     onTextBlur?: () => void;
     onRemove?: () => void;
+    sortHandlers?: any;
 }
 
 interface INotesListItemDetailsState {
@@ -55,8 +56,10 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            onBlur={() => this.onBlur()}
                            placeholder={this.props.textPlaceholder || ''}
                            value={this.props.textValue}/>
-                    <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
-                        <MaterialIcons size={16} name={'drag-handle'}/>
+                    <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}
+
+                            {...this.props.sortHandlers}>
+                        <MaterialIcons size={32} name={'drag-handle'}/>
                     </Button>
                 </Form>
             </ListItem>

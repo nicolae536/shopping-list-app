@@ -1,7 +1,8 @@
-import {Form, Input, Item, Label, Text, View, List, ListItem} from 'native-base';
+import {Text, View, Form, Item, Label, Input, ListItem, List, Container, Footer, FooterTab, Button} from 'native-base';
 import * as React from 'react';
 import {Component} from 'react';
-import {KeyboardAvoidingView, ScrollView, Keyboard, EmitterSubscription} from 'react-native';
+import {EmitterSubscription, ScrollView, Keyboard, KeyboardAvoidingView} from 'react-native';
+import SortableListView from 'react-native-sortable-listview';
 import {NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
@@ -11,13 +12,14 @@ import {
 } from '../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 import {NotesList} from '../../domain/notes-list';
 import {stateContainer} from '../../domain/state-container';
-import {KEYBOARD_AVOID_VIEW_OFFSET} from '../navigation/app-navigation';
 import {getNavigationOptions} from '../navigation/app-navigation-header';
+import {KEYBOARD_AVOID_VIEW_OFFSET} from '../navigation/navigation-consts';
 import {notesListDetailsSelectors} from './notes-list-details-selectors';
 import {notesListDetailsUpdate} from './notes-list-details-updaters';
 import {NotesListDetailsScreenStyle} from './notes-list-detils-screen.style';
 
 interface NotesListDetailsScreenState {
+    selectedView: 'not-done' | 'done';
     saveActionLabel: string;
     notesListTitle: string;
     activeItem?: NotesList;
@@ -39,6 +41,7 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
         const translations = stateContainer.getTranslations();
 
         this.state = {
+            selectedView: 'not-done',
             isKeyboardOpen: false,
             notesListTitle: translations.NOTES_LIST_ITEM.TITLE,
             saveActionLabel: translations.NOTES_LIST_ITEM.SAVE_ACTION
@@ -47,57 +50,29 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
     }
 
     render() {
-        return <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={KEYBOARD_AVOID_VIEW_OFFSET} enabled={true}
-                                     style={NotesListDetailsScreenStyle.MainContainer}>
-            <ScrollView>
-                {
-                    !this.state.activeItem
-                        ? <Text>Loading</Text>
-                        : <View>
-                            <Form style={NotesListDetailsScreenStyle.TitleContainer}>
-                                <Item floatingLabel>
-                                    <Label style={NotesListDetailsScreenStyle.Title}>{this.state.notesListTitle}</Label>
-                                    <Input value={this.state.activeItem.title}
-                                           style={NotesListDetailsScreenStyle.Title}
-                                           onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
-                                </Item>
-                            </Form>
-                            <List>
-                                <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
-                                    <Text>{'Not Done Items'}</Text>
-                                </ListItem>
-                                {this.state.activeItem!.noteItems.map((it, idx) => <NotesListItemDetailsAddEdit
-                                    key={it.uuid}
-                                    canRemove={!it.isEmpty && !this.state.isKeyboardOpen}
-                                    checked={it.isDone}
-                                    textValue={it.description}
-                                    onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
-                                    onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
-                                    onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(idx, newText)}
-                                    onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)
-                                }
-                                <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
-                                    <Text>{'Done Items'}</Text>
-                                </ListItem>
-                                {
-                                    this.state.activeItem!.doneNoteItems
-                                        .map((it, idx) => <NotesListItemDetailsAddEdit
-                                            key={it.uuid}
-                                            canRemove={!this.state.isKeyboardOpen}
-                                            checked={it.isDone}
-                                            textValue={it.description}
-                                            onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
-                                            onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
-                                            onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(idx, newText)}
-                                            onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)
-                                }
-                            </List>
-                        </View>
+        if (!this.state.activeItem) {
+            return <Text>Loading...</Text>;
+        }
 
-                }
-
-            </ScrollView>
-        </KeyboardAvoidingView>;
+        return <Container>
+            <View style={{flex: 1}}>
+                {this.renderActiveTab()}
+            </View>
+            <Footer>
+                <FooterTab>
+                    <Button active={this.state.selectedView === 'not-done'} onPress={() => this.setState({
+                        selectedView: 'not-done'
+                    })}>
+                        <Text>Not Done</Text>
+                    </Button>
+                    <Button active={this.state.selectedView === 'done'} onPress={() => this.setState({
+                        selectedView: 'done'
+                    })}>
+                        <Text>Done</Text>
+                    </Button>
+                </FooterTab>
+            </Footer>
+        </Container>;
     }
 
     componentWillUnmount(): void {
@@ -127,6 +102,74 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
             this._keyboardDidHide.bind(this)
         );
     }
+
+    private renderTab1 = () => {
+        const order = Object.keys(this.state.activeItem!.noteItems);
+        return <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={KEYBOARD_AVOID_VIEW_OFFSET}
+                                     enabled={true}
+                                     style={NotesListDetailsScreenStyle.MainContainer}>
+            <Form style={NotesListDetailsScreenStyle.TitleContainer}>
+                <Item floatingLabel>
+                    <Label style={NotesListDetailsScreenStyle.Title}>{this.state.notesListTitle}</Label>
+                    <Input value={this.state.activeItem!.title}
+                           style={NotesListDetailsScreenStyle.Title}
+                           onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
+                </Item>
+            </Form>
+
+            <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
+                <Text>{'Not Done Items'}</Text>
+            </ListItem>
+
+            <SortableListView data={this.state.activeItem!.noteItems}
+                              order={order}
+                              style={{flex: 1}}
+                              onRowMoved={e => {
+                                  order.splice(e.to, 0, order.splice(e.from, 1)[0]);
+                                  this.forceUpdate();
+                              }}
+                              renderRow={(row, index) => <NotesListItemDetailsAddEdit
+                                  key={row.uuid}
+                                  canRemove={!row.isEmpty && !this.state.isKeyboardOpen}
+                                  checked={row.isDone}
+                                  textValue={row.description}
+                                  onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(row)}
+                                  onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(row, checked)}
+                                  onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(index, newText)}
+                                  onRemove={() => notesListDetailsUpdate.removeItem(row)}/>}
+            />
+        </KeyboardAvoidingView>;
+    };
+
+    private renderTab2 = () => {
+        return <ScrollView>
+            <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
+                <Text>{'Done Items'}</Text>
+            </ListItem>
+            <List>
+                {
+                    this.state.activeItem!.doneNoteItems
+                        .map((it, idx) => <NotesListItemDetailsAddEdit
+                            key={it.uuid}
+                            canRemove={!this.state.isKeyboardOpen}
+                            checked={it.isDone}
+                            textValue={it.description}
+                            onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
+                            onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
+                            onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(idx, newText)}
+                            onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)
+                }
+            </List>
+        </ScrollView>;
+    };
+
+    private renderActiveTab = () => {
+        if (this.state.selectedView === 'not-done') {
+            return this.renderTab1();
+        }
+
+        return this.renderTab2();
+    };
 
     private _keyboardDidShow() {
         this.setState({
