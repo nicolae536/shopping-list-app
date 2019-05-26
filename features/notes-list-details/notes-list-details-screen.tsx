@@ -1,3 +1,4 @@
+import {Octicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {Text, View, Form, Item, Label, Input, ListItem, List, Container, Footer, FooterTab, Button} from 'native-base';
 import * as React from 'react';
 import {Component} from 'react';
@@ -10,6 +11,7 @@ import {loggerInstance} from '../../components/logger';
 import {
     getTextValue, NotesListItemDetailsAddEdit
 } from '../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
+import {NoteItem} from '../../domain/note-item';
 import {NotesList} from '../../domain/notes-list';
 import {stateContainer} from '../../domain/state-container';
 import {getNavigationOptions} from '../navigation/app-navigation-header';
@@ -56,19 +58,31 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
 
         return <Container>
             <View style={{flex: 1}}>
-                {this.renderActiveTab()}
+                <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={KEYBOARD_AVOID_VIEW_OFFSET}
+                                      enabled={true}
+                                      style={NotesListDetailsScreenStyle.MainContainer}>
+                    <Form style={NotesListDetailsScreenStyle.TitleContainer}>
+                        <Item floatingLabel>
+                            <Label style={NotesListDetailsScreenStyle.Title}>{this.state.notesListTitle}</Label>
+                            <Input value={this.state.activeItem!.title}
+                                   style={NotesListDetailsScreenStyle.Title}
+                                   onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
+                        </Item>
+                    </Form>
+                    {this.renderActiveTab()}
+                </KeyboardAvoidingView>
             </View>
             <Footer>
                 <FooterTab>
-                    <Button active={this.state.selectedView === 'not-done'} onPress={() => this.setState({
+                    <Button vertical active={this.state.selectedView === 'not-done'} onPress={() => this.setState({
                         selectedView: 'not-done'
                     })}>
-                        <Text>Not Done</Text>
+                        <MaterialCommunityIcons style={NotesListDetailsScreenStyle.TabIconStyle} size={32} name={'format-list-checkbox'}/>
                     </Button>
-                    <Button active={this.state.selectedView === 'done'} onPress={() => this.setState({
+                    <Button vertical active={this.state.selectedView === 'done'} onPress={() => this.setState({
                         selectedView: 'done'
                     })}>
-                        <Text>Done</Text>
+                        <Octicons style={NotesListDetailsScreenStyle.TabIconStyle} size={32} name={'checklist'}/>
                     </Button>
                 </FooterTab>
             </Footer>
@@ -104,26 +118,18 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
     }
 
     private renderTab1 = () => {
-        return <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={KEYBOARD_AVOID_VIEW_OFFSET}
-                                     enabled={true}
-                                     style={NotesListDetailsScreenStyle.MainContainer}>
-            <Form style={NotesListDetailsScreenStyle.TitleContainer}>
-                <Item floatingLabel>
-                    <Label style={NotesListDetailsScreenStyle.Title}>{this.state.notesListTitle}</Label>
-                    <Input value={this.state.activeItem!.title}
-                           style={NotesListDetailsScreenStyle.Title}
-                           onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
-                </Item>
-            </Form>
-
+        return <View style={{flex: 1}}>
             <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
                 <Text>{'Not Done Items'}</Text>
             </ListItem>
 
             <DraggableFlatList data={this.state.activeItem!.noteItems}
-                               style={{flex: 1}}
+                               style={NotesListDetailsScreenStyle.ListStyle}
                                keyExtractor={(item) => item.uuid}
                                scrollPercent={5}
+                               onMoveEnd={({data}) => {
+                                   notesListDetailsUpdate.updateNotesListOrder(data as NoteItem[]);
+                               }}
                                renderItem={({item, index, move, moveEnd, isActive}) =>
                                    <NotesListItemDetailsAddEdit key={item.uuid}
                                                                 canRemove={!item.isEmpty && !this.state.isKeyboardOpen}
@@ -136,7 +142,7 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
                                                                 onPressOut={moveEnd}
                                                                 onRemove={() => notesListDetailsUpdate.removeItem(item)}/>}
             />
-        </KeyboardAvoidingView>;
+        </View>;
     };
 
     private renderTab2 = () => {

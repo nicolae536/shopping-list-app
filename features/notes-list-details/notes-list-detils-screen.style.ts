@@ -1,4 +1,5 @@
 import {StyleSheet, Platform} from 'react-native';
+import {NATIVE_BASE_THEME} from '../../styles/variables';
 
 export const NotesListDetailsScreenStyle = StyleSheet.create({
     MainContainer: {
@@ -26,5 +27,9 @@ export const NotesListDetailsScreenStyle = StyleSheet.create({
         marginBottom: 5
     },
     ListItemDivider: {marginTop: 10},
-    TitleContainer: {marginBottom: 10}
+    ListStyle: {flex: 1},
+    TitleContainer: {marginBottom: 10},
+    TabIconStyle: {
+        color: NATIVE_BASE_THEME.variables.cardDefaultBg
+    },
 });

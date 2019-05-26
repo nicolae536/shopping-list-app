@@ -3,7 +3,8 @@ import {NATIVE_BASE_THEME} from '../../styles/variables';
 
 export const NoteListItemViewStyles = StyleSheet.create({
     LIST_ITEM_CONTENT_CHILD_ITEM: {
-        flex: 1,
+        flex: 0,
+        flexShrink: 0,
         justifyContent: 'center',
         alignItems: 'center',
         paddingTop: 5,

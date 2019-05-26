@@ -1,8 +1,8 @@
 // import {} from 'react-native-vector-icons/dist/lib';
-import {MaterialIcons} from '@expo/vector-icons';
-import {CheckBox, Form, Input, Button, ListItem} from 'native-base';
+import {MaterialCommunityIcons} from '@expo/vector-icons';
+import {CheckBox, Form, Input, Button, ListItem, View} from 'native-base';
 import * as React from 'react';
-import {Dimensions} from 'react-native';
+import {Dimensions, Vibration, TouchableOpacity} from 'react-native';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {SwipeActions} from '../swipe-to-remove/swipe-actions';
 import {NotesListItemDetailsAddEditStyle} from './notes-list-item-details-add-edit.style';
@@ -19,7 +19,6 @@ interface INotesListItemDetailsProps {
     onRemove?: () => void;
     onLongPress?: () => void;
     onPressOut?: () => void;
-    sortHandlers?: any;
 }
 
 interface INotesListItemDetailsState {
@@ -58,12 +57,14 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            onBlur={() => this.onBlur()}
                            placeholder={this.props.textPlaceholder || ''}
                            value={this.props.textValue}/>
-                    <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}
-                            onLongPress={() => this.handleLongPress()}
-                            onPressOut={() => this.handlePressOut()}
-                            {...this.props.sortHandlers}>
-                        <MaterialIcons size={32} name={'drag-handle'}/>
-                    </Button>
+                    <View>
+                        <TouchableOpacity style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
+                                          onLongPress={() => this.handleLongPress()}
+                                          onPressOut={() => this.handlePressOut()}>
+                            <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
+                                                    name={'arrow-split-horizontal'}/>
+                        </TouchableOpacity>
+                    </View>
                 </Form>
             </ListItem>
         </SwipeActions>;
@@ -101,6 +102,7 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
 
     private handleLongPress() {
         if (this.props.onLongPress) {
+            Vibration.vibrate(50);
             this.props.onLongPress();
         }
     }

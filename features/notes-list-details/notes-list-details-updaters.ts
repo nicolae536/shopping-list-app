@@ -119,5 +119,12 @@ export const notesListDetailsUpdate = {
         return appState.update({
             activeNoteItem: it
         });
+    }),
+    updateNotesListOrder: (data: NoteItem[]) => stateContainer.pureStateUpdate(appState => {
+        return appState.update({
+            activeNotesList: appState.activeNotesList!.update({
+                noteItems: data
+            })
+        });
     })
 };
