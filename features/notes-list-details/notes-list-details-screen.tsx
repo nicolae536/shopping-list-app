@@ -24,6 +24,9 @@ interface NotesListDetailsScreenState {
     selectedView: 'not-done' | 'done';
     saveActionLabel: string;
     notesListTitle: string;
+    notDoneListTitle: string;
+    addNewItemPlaceholder: string;
+    doneListTitle: string;
     activeItem?: NotesList;
     isKeyboardOpen: boolean;
 }
@@ -46,6 +49,9 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
             selectedView: 'not-done',
             isKeyboardOpen: false,
             notesListTitle: translations.NOTES_LIST_ITEM.TITLE,
+            addNewItemPlaceholder: translations.NOTES_LIST_ITEM.ADD_NEW_ITEM,
+            notDoneListTitle: translations.NOTES_LIST_ITEM.NOT_DONE_TILE,
+            doneListTitle: translations.NOTES_LIST_ITEM.DONE_TILE,
             saveActionLabel: translations.NOTES_LIST_ITEM.SAVE_ACTION
         };
         notesListDetailsUpdate.activateOrCreateItem(navigation.getParam('id'));
@@ -120,7 +126,7 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
     private renderTab1 = () => {
         return <View style={{flex: 1}}>
             <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
-                <Text>{'Not Done Items'}</Text>
+                <Text>{this.state.notDoneListTitle}</Text>
             </ListItem>
 
             <DraggableFlatList data={this.state.activeItem!.noteItems}
@@ -134,6 +140,7 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
                                    <NotesListItemDetailsAddEdit key={item.uuid}
                                                                 canRemove={!item.isEmpty && !this.state.isKeyboardOpen}
                                                                 checked={item.isDone}
+                                                                textPlaceholder={item.isEmpty ? this.state.addNewItemPlaceholder : ''}
                                                                 textValue={item.description}
                                                                 onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(item)}
                                                                 onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(item, checked)}
@@ -148,7 +155,7 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
     private renderTab2 = () => {
         return <ScrollView>
             <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
-                <Text>{'Done Items'}</Text>
+                <Text>{this.state.notDoneListTitle}</Text>
             </ListItem>
             <List>
                 {
