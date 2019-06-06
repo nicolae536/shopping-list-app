@@ -27,7 +27,7 @@ export const NotesListItemDetailsAddEditStyle = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 40,
+        width: 58,
         height: 64
     },
     DRAG_HANDLE_ICON: {
@@ -35,6 +35,7 @@ export const NotesListItemDetailsAddEditStyle = StyleSheet.create({
     },
     LIST_ITEM: {
         paddingTop: 0,
+        paddingRight: 0,
         paddingBottom: 0
     },
     CHECK_BOX: {
