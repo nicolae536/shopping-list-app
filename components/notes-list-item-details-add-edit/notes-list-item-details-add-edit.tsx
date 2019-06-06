@@ -2,7 +2,7 @@
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {CheckBox, Form, Input, Button, ListItem, View} from 'native-base';
 import * as React from 'react';
-import {Dimensions, Vibration, TouchableOpacity} from 'react-native';
+import {Dimensions, Vibration, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {SwipeActions} from '../swipe-to-remove/swipe-actions';
 import {NotesListItemDetailsAddEditStyle} from './notes-list-item-details-add-edit.style';
@@ -58,13 +58,13 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            placeholder={this.props.textPlaceholder || ''}
                            value={this.props.textValue}/>
                     <View>
-                        <TouchableOpacity style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
-                                          delayLongPress={50}
-                                          onPressIn={() => this.handleLongPress()}
+                        <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
+                                          delayLongPress={100}
+                                          onLongPress={() => this.handleLongPress()}
                                           onPressOut={() => this.handlePressOut()}>
                             <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
                                                     name={'arrow-split-horizontal'}/>
-                        </TouchableOpacity>
+                        </TouchableWithoutFeedback>
                     </View>
                 </Form>
             </ListItem>
