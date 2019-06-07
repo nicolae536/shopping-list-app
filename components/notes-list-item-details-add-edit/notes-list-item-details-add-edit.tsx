@@ -1,6 +1,6 @@
 // import {} from 'react-native-vector-icons/dist/lib';
 import {MaterialCommunityIcons} from '@expo/vector-icons';
-import {Button, CheckBox, Form, Input, ListItem} from 'native-base';
+import {Button, CheckBox, Form, Input, ListItem, View} from 'native-base';
 import * as React from 'react';
 import {Dimensions, Vibration, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
 import {NATIVE_BASE_THEME} from '../../styles/variables';

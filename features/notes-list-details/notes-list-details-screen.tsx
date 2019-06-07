@@ -57,6 +57,12 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
         notesListDetailsUpdate.activateOrCreateItem(navigation.getParam('id'));
     }
 
+    _handleAppStateChange= (nextAppState) => {
+        if (nextAppState === 'inactive') {
+            notesListDetailsUpdate.cleanState();
+        }
+    };
+
     render() {
         if (!this.state.activeItem) {
             return <Text>Loading...</Text>;
