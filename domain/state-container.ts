@@ -114,7 +114,7 @@ export class StateContainer {
             notesListToSerialize.push(updateNotesItem);
         });
 
-        if (!isInList) {
+        if (!isInList && appState.activeNotesList) {
             notesListToSerialize = [appState.activeNotesList.toSerialized(), ...notesListToSerialize];
         }
 
