@@ -3,6 +3,7 @@ import {BehaviorSubject, Observable, from, of} from 'rxjs';
 import {filter, first, switchMap, catchError, map, distinctUntilChanged} from 'rxjs/operators';
 import {loggerInstance} from '../components/logger';
 import {AppStateModel, IStateContainerSerialized} from './app-state-model';
+import {SerializedNotesList} from './notes-list';
 
 function convertToObservable(newState) {
     if (newState instanceof Observable) {
@@ -97,17 +98,25 @@ export class StateContainer {
             return;
         }
 
-        const notesListToSerialize = [];
+        let notesListToSerialize: SerializedNotesList[] = [];
+        let isInList = false;
         appState.notesItems.forEach(n => {
             if (n.isEmpty()) {
                 return;
             }
 
-            const updateNotesItem = appState.activeNotesList && n.uuid === appState.activeNotesList.uuid
-                ? appState.activeNotesList.toSerialized()
-                : n.toSerialized();
+            let updateNotesItem = n.toSerialized();
+            if (appState.activeNotesList && n.uuid === appState.activeNotesList.uuid) {
+                isInList = true;
+                updateNotesItem = appState.activeNotesList.toSerialized();
+            }
+
             notesListToSerialize.push(updateNotesItem);
         });
+
+        if (!isInList) {
+            notesListToSerialize = [appState.activeNotesList.toSerialized(), ...notesListToSerialize];
+        }
 
         const stateContainerSerialized: IStateContainerSerialized = {
             notesList: notesListToSerialize,
