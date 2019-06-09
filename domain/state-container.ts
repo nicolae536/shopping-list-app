@@ -1,9 +1,8 @@
 import {AsyncStorage} from 'react-native';
 import {BehaviorSubject, Observable, from, of} from 'rxjs';
-import {filter, first, map, distinctUntilChanged, switchMap, takeUntil, catchError} from 'rxjs/operators';
+import {filter, first, switchMap, catchError, map, distinctUntilChanged} from 'rxjs/operators';
 import {loggerInstance} from '../components/logger';
 import {AppStateModel, IStateContainerSerialized} from './app-state-model';
-import {NotesList} from './notes-list';
 
 function convertToObservable(newState) {
     if (newState instanceof Observable) {
@@ -31,25 +30,23 @@ export class StateContainer {
         return this.appState.pipe(filter(c => c !== null));
     }
 
+    public select$<T, U>(selector: (selectFn: AppStateModel) => T, mapFn?: (map: T) => U) {
+        return this.isReady$()
+            .pipe(
+                map(appState => selector(appState)),
+                distinctUntilChanged(),
+                map(value => {
+                    if (mapFn instanceof Function) {
+                        return mapFn(value) as U;
+                    }
+
+                    return value as T;
+                })
+            );
+    }
+
     public isReadyFirst$() {
         return this.isReady$().pipe(filter(c => c !== null), first());
-    }
-
-    public notesList$(onUnsubscribe?: Observable<any>) {
-        const source = this.isReady$()
-            .pipe(switchMap(() =>
-                this.appState.pipe(map(n => n.notesItems), distinctUntilChanged())
-            ));
-        return this.autoUnsubscribe(source, onUnsubscribe);
-    }
-
-    // @ts-ignore
-    public findNotesList(uuid: string): NotesList {
-        for (const it of this.appState.value.notesItems) {
-            if (it.uuid === uuid) {
-                return it;
-            }
-        }
     }
 
     public pureStateUpdate(pureUpdater: (currentState: AppStateModel) => AppStateModel | Observable<AppStateModel> | Promise<any>) {
@@ -95,21 +92,25 @@ export class StateContainer {
         }
     }
 
-    private autoUnsubscribe<T>(source: Observable<T>, _onUnsubscribe?: Observable<any>): Observable<T> {
-        if (_onUnsubscribe) {
-            return source.pipe(takeUntil(_onUnsubscribe));
-        }
-
-        return source;
-    }
-
     private serializeToStorage(appState: AppStateModel) {
         if (appState.error) {
             return;
         }
 
+        const notesListToSerialize = [];
+        appState.notesItems.forEach(n => {
+            if (n.isEmpty()) {
+                return;
+            }
+
+            const updateNotesItem = appState.activeNotesList && n.uuid === appState.activeNotesList.uuid
+                ? appState.activeNotesList.toSerialized()
+                : n.toSerialized();
+            notesListToSerialize.push(updateNotesItem);
+        });
+
         const stateContainerSerialized: IStateContainerSerialized = {
-            notesList: appState.notesItems.filter(n => !n.isEmpty()).map(it => it.toSerialized()),
+            notesList: notesListToSerialize,
             language: 'en'
         };
 

@@ -58,6 +58,6 @@ export class NotesList {
     }
 
     isEmpty() {
-        return !this.title || (this.noteItems.length === 1 && !this.noteItems[0].description && !this.noteItems[0].isDone && !this.doneNoteItems.length);
+        return !this.title && (this.noteItems.length === 1 && !this.noteItems[0].description && !this.noteItems[0].isDone && !this.doneNoteItems.length);
     }
 }

@@ -2,7 +2,7 @@ import {Octicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {Text, View, Form, Item, Label, Input, ListItem, List, Container, Footer, FooterTab, Button} from 'native-base';
 import * as React from 'react';
 import {Component} from 'react';
-import {EmitterSubscription, ScrollView, Keyboard, KeyboardAvoidingView} from 'react-native';
+import {EmitterSubscription, ScrollView, Keyboard, KeyboardAvoidingView, AppState} from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import {NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
@@ -56,12 +56,6 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
         };
         notesListDetailsUpdate.activateOrCreateItem(navigation.getParam('id'));
     }
-
-    _handleAppStateChange= (nextAppState) => {
-        if (nextAppState === 'inactive') {
-            notesListDetailsUpdate.cleanState();
-        }
-    };
 
     render() {
         if (!this.state.activeItem) {
@@ -148,7 +142,7 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
                                                                 checked={item.isDone}
                                                                 textPlaceholder={item.isEmpty ? this.state.addNewItemPlaceholder : ''}
                                                                 textValue={item.description}
-                                                                onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(item)}
+                                                                onTextFocus={() => notesListDetailsUpdate.markNoteItemAsActive(item)}
                                                                 onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(item, checked)}
                                                                 onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(index, newText)}
                                                                 onLongPress={move}
@@ -171,7 +165,7 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
                             canRemove={!this.state.isKeyboardOpen}
                             checked={it.isDone}
                             textValue={it.description}
-                            onTextFocus={() => notesListDetailsUpdate.setActiveNodeItem(it)}
+                            onTextFocus={() => notesListDetailsUpdate.markNoteItemAsActive(it)}
                             onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
                             onTextChange={newText => notesListDetailsUpdate.updateNoteItemDescription(idx, newText)}
                             onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)

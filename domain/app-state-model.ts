@@ -4,7 +4,6 @@ import {NotesList, SerializedNotesList} from './notes-list';
 import {Translations, TranslationsType} from './translations';
 import {updateObject} from './updateObject';
 
-
 export interface IStateContainerSerialized {
     notesList: SerializedNotesList[];
     language: string;

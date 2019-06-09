@@ -19,7 +19,7 @@ interface IAppState {
 
 export default class NotesListScreen extends React.Component<NavigationInjectedProps, IAppState> {
     static navigationOptions = getNavigationOptions('Notes lists');
-    _onDestroy = new Subject();
+    componentUnmounted = new Subject();
     private _panResponder: PanResponderInstance;
 
     constructor(props: any, state: IAppState) {
@@ -73,8 +73,9 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
 
     componentDidMount(): void {
         notesListSelectors.notesListView$()
-            .pipe(takeUntil(this._onDestroy))
+            .pipe(takeUntil(this.componentUnmounted))
             .subscribe(notes => {
+                console.log('notes', notes);
                 this.setState({
                     loading: false,
                     notesList: notes
@@ -83,7 +84,7 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
     }
 
     componentWillUnmount(): void {
-        this._onDestroy.next();
-        this._onDestroy.complete();
+        this.componentUnmounted.next();
+        this.componentUnmounted.complete();
     }
 }
