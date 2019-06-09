@@ -46,26 +46,33 @@ export const notesListDetailsUpdate = {
             })
         });
     }),
-    updateNoteItemDescription: (itemIndex: number, description: string) => stateContainer.pureStateUpdate(appState => {
-        const updatedNoteItem = appState.activeNoteItem!.update({
+    updateDoneNoteItemDescription: (itemIndex: number, description: string) => stateContainer.pureStateUpdate(appState => {
+        const {doneNoteItems} = appState.activeNotesList!;
+        doneNoteItems[itemIndex] = doneNoteItems[itemIndex].update({
+            description
+        });
+
+        return appState.update({
+            activeNotesList: appState.activeNotesList!.update({
+                doneNoteItems: [...doneNoteItems]
+            })
+        });
+    }),
+    updateNotDoneNoteItemDescription: (itemIndex: number, description: string) => stateContainer.pureStateUpdate(appState => {
+        const {noteItems} = appState.activeNotesList!;
+        noteItems[itemIndex] = noteItems[itemIndex].update({
             description
         });
 
         const isLastItemEditedAndNotEmpty = description.length > 1 && itemIndex + 1 === appState.activeNotesList!.noteItems.length;
-        const newNoteItems = appState.activeNotesList!.noteItems.map(it => {
-            return it.uuid === updatedNoteItem.uuid
-                ? updatedNoteItem
-                : it.clone();
-        });
         if (isLastItemEditedAndNotEmpty) {
-            newNoteItems.push(new NoteItem());
+            noteItems.push(new NoteItem());
         }
 
         return appState.update({
             activeNotesList: appState.activeNotesList!.update({
-                noteItems: newNoteItems
-            }),
-            activeNoteItem: updatedNoteItem
+                noteItems: [...noteItems]
+            })
         });
     }),
     updateNoteItemIsDone: (it: NoteItem, isDone: boolean) => stateContainer.pureStateUpdate(appState => {

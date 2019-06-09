@@ -9,4 +9,6 @@ export const RootStackNavigator = createStackNavigator({
   initialRouteKey: 'NotesListScreen'
 });
 
+
+
 const AppNavigator = createAppContainer(RootStackNavigator);

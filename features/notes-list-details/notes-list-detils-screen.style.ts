@@ -2,11 +2,8 @@ import {StyleSheet, Platform} from 'react-native';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 
 export const NotesListDetailsScreenStyle = StyleSheet.create({
-    MainContainer: {
+    KeyboardAvoidView: {
         flex: 1,
-        flexDirection: 'column',
-        paddingTop: (Platform.OS === 'ios') ? 20 : 0,
-        marginBottom: 10
     },
 
     InnerView: {
