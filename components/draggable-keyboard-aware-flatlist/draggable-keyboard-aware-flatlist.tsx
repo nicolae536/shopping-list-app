@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Animated, ListRenderItemInfo, PanResponder, PanResponderInstance, View, Dimensions} from 'react-native';
+import {Animated, ListRenderItemInfo, PanResponder, PanResponderInstance, View} from 'react-native';
 import {KeyboardAwareFlatList, KeyboardAwareFlatListProps} from 'react-native-keyboard-aware-scroll-view';
 
 interface IDraggableItem extends ListRenderItemInfo<any> {
@@ -64,23 +64,31 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             onMoveShouldSetPanResponder: () => !!this.state.activeDraggingItem,
             onMoveShouldSetPanResponderCapture: () => !!this.state.activeDraggingItem,
             onPanResponderGrant: (e, g) => {
-                console.log('pan-responder');
                 Animated.timing(this.state.activeDraggingItem.item.itemYPosition, {
                     duration: 5,
                     toValue: this.getPosition(g)
-                });
+                }).start();
             },
             onPanResponderMove: (e, g) => {
                 Animated.timing(this.state.activeDraggingItem.item.itemYPosition, {
                     duration: 5,
                     toValue: this.getPosition(g)
-                });
+                }).start();
                 // this._flatListRef.
                 // make item follow the figner using absolute positioning
                 // scroll list up/down using flatlist ref
                 // consider creating drop slot on 2 items intersections
             },
-            onPanResponderEnd: (e, g) => {
+            onPanResponderRelease: (e, g) => {
+                Animated.timing(this.state.activeDraggingItem.item.itemPosition, {
+                    toValue: 0,
+                    duration: 100
+                }).start(() => {
+                    this.setState({
+                        activeItemMeasures: null,
+                        activeDraggingItem: null
+                    });
+                });
                 // drop item to position
                 // maybe with animation
             }
@@ -94,7 +102,17 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
     }
 
     getPosition(g) {
-        return g.moveY - this._containerOffset;
+        const newGesturePosition = g.moveY - this._containerOffset;
+
+        if (newGesturePosition < 0) {
+            return 0;
+        }
+
+        if (newGesturePosition > this._containerOffset + this._containerSize) {
+            return this._containerSize;
+        }
+
+        return newGesturePosition;
     }
 
     componentWillReceiveProps(nextProps: Readonly<IDraggableFlatListProps>, nextContext: any): void {
@@ -153,23 +171,20 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                 width: this.state.activeItemMeasures.width,
                 height: this.state.activeItemMeasures.height,
                 transform: [
-                    {scale: 0.8},
                     {
-                        translateY: this.state.activeDraggingItem.item.itemYPosition.interpolate({
-                            inputRange: [0, Dimensions.get('window').height],
-                            outputRange: [this._containerOffset, this._containerOffset + this._containerSize],
-                            extrapolate: 'clamp'
-                        })
+                        scale: 0.9
+                    },
+                    {
+                        translateY: this.state.activeDraggingItem.item.itemYPosition
                     }
                 ]
             } : {};
 
         return !this.state.activeDraggingItem
             ? null
-            : <Animated.View style={{
-                position: 'absolute',
-                ...styles
-            }}>
+            : <Animated.View style={[{
+                position: 'absolute'
+            }, styles]}>
                 {this.props.renderItem({
                     index: this.state.activeDraggingItem.index,
                     item: this.state.activeDraggingItem.item.itemRef,
@@ -189,7 +204,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                 transform: [
                     {
                         scale: item.item.itemPosition.interpolate({
-                            inputRange: [0.8, 1],
+                            inputRange: [0.9, 1],
                             outputRange: [1, 0],
                             extrapolate: 'clamp'
                         })
@@ -220,7 +235,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
 
 
             this.draggingAnimationRef.start(() => {
-                it.item.itemYPosition.setValue(pageY);
+                it.item.itemYPosition.setValue(this._containerOffset + (height * it.index));
                 this.setState({
                     activeItemMeasures: {
                         x, y, width, height, pageX, pageY

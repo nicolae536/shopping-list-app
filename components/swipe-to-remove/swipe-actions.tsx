@@ -46,7 +46,7 @@ export class SwipeActions extends PureComponent<SwipeToRemoveProps, SwipeToRemov
       onMoveShouldSetPanResponderCapture: (e, g) => this.onMoveShouldSetPanResponderCapture(e, g),
       onMoveShouldSetPanResponder: (e, g) => this.onMoveShouldSetPanResponder(e, g),
       onPanResponderMove: (ev, gesture) => this.onPanResponderMove(ev, gesture),
-      onPanResponderEnd: () => this.onPanResponderEnd()
+      onPanResponderRelease: () => this.onPanResponderEnd()
     });
 
     this.state = {
