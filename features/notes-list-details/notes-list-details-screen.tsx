@@ -57,7 +57,6 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
                     </Item>
                 </Form>
                 <NotesListDetailsRouter ref={navigatorRef => {
-                    console.log('rerender')
                     this.navigatorRef = navigatorRef;
                 }}/>
             </View>

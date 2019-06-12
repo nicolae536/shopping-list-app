@@ -75,7 +75,6 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
         notesListSelectors.notesListView$()
             .pipe(takeUntil(this.componentUnmounted))
             .subscribe(notes => {
-                console.log('notes', notes);
                 this.setState({
                     loading: false,
                     notesList: notes

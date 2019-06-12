@@ -47,9 +47,11 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                              onSwipeEnd={() => this.onRemove()}>
             <ListItem style={NotesListItemDetailsAddEditStyle.LIST_ITEM}>
                 <Form style={NotesListItemDetailsAddEditStyle.MAIN_CONTAINER}>
-                    <Button transparent style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}>
-                        <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX} checked={this.props.checked}
-                                  onPress={() => this.checkboxToggle()}/>
+                    <Button transparent
+                            style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}
+                            onPress={() => this.checkboxToggle()}>
+                        <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX}
+                                  checked={this.props.checked}/>
                     </Button>
                     <Input onChange={(event) => this.textInputChange(getTextValue(event))}
                            onFocus={() => this.onFocus()}
@@ -57,7 +59,7 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            onBlur={() => this.onBlur()}
                            placeholder={this.props.textPlaceholder || ''}
                            value={this.props.textValue}/>
-                    <View>
+                    <View style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_CONTAINER}>
                         <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
                                           delayLongPress={100}
                                           onLongPress={() => this.handleLongPress()}
