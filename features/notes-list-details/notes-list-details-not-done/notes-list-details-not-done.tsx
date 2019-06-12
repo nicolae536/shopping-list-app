@@ -1,8 +1,8 @@
 import {View, ListItem, Text} from 'native-base';
 import React, {Component} from 'react';
-import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
+import {DraggableKeyboardAwareFlatlist} from '../../../components/draggable-keyboard-aware-flatlist/draggable-keyboard-aware-flatlist';
 import {loggerInstance} from '../../../components/logger';
 import {NotesListItemDetailsAddEdit} from '../../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 import {NotesList} from '../../../domain/notes-list';
@@ -52,30 +52,32 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
                 <Text>{this.state.notDoneListTitle}</Text>
             </ListItem>
 
-            <KeyboardAwareFlatList data={this.state.activeItem!.noteItems}
-                                   enableOnAndroid={true}
-                                   extraScrollHeight={40}
-                                   onKeyboardWillShow={() => this.setState({
-                                       isKeyboardOpen: true
-                                   })}
-                                   onKeyboardWillHide={() => this.setState({
-                                       isKeyboardOpen: false
-                                   })}
-                                   keyboardOpeningTime={50}
-                                   keyExtractor={(item) => item.uuid}
-                                   renderItem={({item, index}) => {
-                                       return <NotesListItemDetailsAddEdit key={item.uuid}
-                                                                           canRemove={!item.isEmpty && !this.state.isKeyboardOpen}
-                                                                           checked={item.isDone}
-                                                                           textPlaceholder={item.isEmpty ? this.state.addNewItemPlaceholder
-                                                                               : ''}
-                                                                           textValue={item.description}
-                                                                           onTextFocus={() => notesListDetailsUpdate.markNoteItemAsActive(item)}
-                                                                           onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(item, checked)}
-                                                                           onTextChange={newText => notesListDetailsUpdate.updateNotDoneNoteItemDescription(index, newText)}
-                                                                           onRemove={() => notesListDetailsUpdate.removeItem(item)}/>;
-                                   }
-                                   }/>
+            <DraggableKeyboardAwareFlatlist data={this.state.activeItem!.noteItems}
+                                            enableOnAndroid={true}
+                                            extraScrollHeight={40}
+                                            onKeyboardWillShow={() => this.setState({
+                                                isKeyboardOpen: true
+                                            })}
+                                            onKeyboardWillHide={() => this.setState({
+                                                isKeyboardOpen: false
+                                            })}
+                                            keyboardOpeningTime={50}
+                                            keyExtractor={(item) => item.uuid}
+                                            renderItem={({item, index, dragStart}) => {
+                                                return <NotesListItemDetailsAddEdit key={item.uuid}
+                                                                                    canRemove={!item.isEmpty && !this.state.isKeyboardOpen}
+                                                                                    checked={item.isDone}
+                                                                                    textPlaceholder={item.isEmpty
+                                                                                        ? this.state.addNewItemPlaceholder
+                                                                                        : ''}
+                                                                                    textValue={item.description}
+                                                                                    onTextFocus={() => notesListDetailsUpdate.markNoteItemAsActive(item)}
+                                                                                    onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(item, checked)}
+                                                                                    onTextChange={newText => notesListDetailsUpdate.updateNotDoneNoteItemDescription(index, newText)}
+                                                                                    onRemove={() => notesListDetailsUpdate.removeItem(item)}
+                                                                                    onLongPress={() => dragStart()}/>;
+                                            }
+                                            }/>
         </View>;
     }
 
