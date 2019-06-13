@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
-import {Animated, ListRenderItemInfo, PanResponder, PanResponderInstance, View} from 'react-native';
+import {Animated, ListRenderItemInfo, PanResponder, PanResponderInstance, View, GestureResponderEvent} from 'react-native';
 import {KeyboardAwareFlatList, KeyboardAwareFlatListProps} from 'react-native-keyboard-aware-scroll-view';
 
 interface IDraggableItem extends ListRenderItemInfo<any> {
-    dragStart(): void;
+    dragStart(ev: GestureResponderEvent): void;
 }
 
 interface IDraggableFlatListProps extends KeyboardAwareFlatListProps<any> {
@@ -51,11 +51,9 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
 
         this._panResponder = PanResponder.create({
             onStartShouldSetPanResponder: (e, g) => {
+                console.log('start');
                 if (!!this.state.activeDraggingItem) {
-                    Animated.timing(this.state.activeDraggingItem.item.itemYPosition, {
-                        duration: 5,
-                        toValue: this.getPosition(g)
-                    });
+                    this.state.activeDraggingItem.item.itemYPosition.setValue(this.getPosition(g));
                     return true;
                 }
 
@@ -64,16 +62,14 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             onMoveShouldSetPanResponder: () => !!this.state.activeDraggingItem,
             onMoveShouldSetPanResponderCapture: () => !!this.state.activeDraggingItem,
             onPanResponderGrant: (e, g) => {
-                Animated.timing(this.state.activeDraggingItem.item.itemYPosition, {
-                    duration: 5,
-                    toValue: this.getPosition(g)
-                }).start();
+                // Animated.timing(this.state.activeDraggingItem.item.itemYPosition, {
+                //     duration: 5,
+                //     toValue: this.getPosition(g)
+                // }).start();
+                this.state.activeDraggingItem.item.itemYPosition.setValue(this.getPosition(g));
             },
             onPanResponderMove: (e, g) => {
-                Animated.timing(this.state.activeDraggingItem.item.itemYPosition, {
-                    duration: 5,
-                    toValue: this.getPosition(g)
-                }).start();
+                this.state.activeDraggingItem.item.itemYPosition.setValue(this.getPosition(g));
                 // this._flatListRef.
                 // make item follow the figner using absolute positioning
                 // scroll list up/down using flatlist ref
@@ -157,8 +153,8 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                     index: it.index,
                     item: it.item.itemRef,
                     separators: it.separators,
-                    dragStart: () => {
-                        this.dragStart(it);
+                    dragStart: (event: GestureResponderEvent) => {
+                        this.dragStart(it, event);
                     }
                 })}
             </View>
@@ -170,6 +166,11 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             ? {
                 width: this.state.activeItemMeasures.width,
                 height: this.state.activeItemMeasures.height,
+                opacity: this.state.activeDraggingItem.item.itemPosition.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 1],
+                    extrapolate: 'clamp'
+                }),
                 transform: [
                     {
                         scale: 0.9
@@ -189,8 +190,8 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                     index: this.state.activeDraggingItem.index,
                     item: this.state.activeDraggingItem.item.itemRef,
                     separators: this.state.activeDraggingItem.separators,
-                    dragStart: () => {
-                        this.dragStart(this.state.activeDraggingItem);
+                    dragStart: (ev) => {
+                        this.dragStart(this.state.activeDraggingItem, ev);
                     }
                 })}
             </Animated.View>;
@@ -199,13 +200,16 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
     private getDragItemStyles(item: ListRenderItemInfo<AnimatableListItem>) {
         return [
             {
-                opacity: 1,
-                visibility: item === this.state.activeDraggingItem ? 'hidden' : 'visible',
+                opacity: item.item.itemPosition.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 0],
+                    extrapolate: 'clamp'
+                }),
                 transform: [
                     {
                         scale: item.item.itemPosition.interpolate({
-                            inputRange: [0.9, 1],
-                            outputRange: [1, 0],
+                            inputRange: [0, 1],
+                            outputRange: [1, 0.9],
                             extrapolate: 'clamp'
                         })
                     }
@@ -214,11 +218,13 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         ];
     }
 
-    private dragStart(it: ListRenderItemInfo<AnimatableListItem>) {
+    private dragStart(it: ListRenderItemInfo<AnimatableListItem>, ev: GestureResponderEvent) {
         // get it relative to screen position
         // scale it to 0.8
         // set pan responder to act
         // on pan responder move update list view scroll position and it position to be the same relative on the screen
+        it.item.itemYPosition.setValue(ev.nativeEvent.pageY - this._containerOffset);
+
         if (this.draggingAnimationRef) {
             this.draggingAnimationRef.stop();
             this.setState({
@@ -228,6 +234,14 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         }
 
         !!this._localRefs[it.index] && this._localRefs[it.index].measure((x, y, width, height, pageX, pageY) => {
+            it.item.itemYPosition.setValue(it.index * height);
+            this.setState({
+                activeItemMeasures: {
+                    x, y, width, height, pageX, pageY
+                },
+                activeDraggingItem: it
+            });
+
             this.draggingAnimationRef = Animated.timing(it.item.itemPosition, {
                 toValue: 1,
                 duration: 100
@@ -235,13 +249,6 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
 
 
             this.draggingAnimationRef.start(() => {
-                it.item.itemYPosition.setValue(this._containerOffset + (height * it.index));
-                this.setState({
-                    activeItemMeasures: {
-                        x, y, width, height, pageX, pageY
-                    },
-                    activeDraggingItem: it
-                });
                 this.draggingAnimationRef = null;
             });
         });

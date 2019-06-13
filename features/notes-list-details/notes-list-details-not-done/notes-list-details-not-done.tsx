@@ -75,7 +75,7 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
                                                                                     onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(item, checked)}
                                                                                     onTextChange={newText => notesListDetailsUpdate.updateNotDoneNoteItemDescription(index, newText)}
                                                                                     onRemove={() => notesListDetailsUpdate.removeItem(item)}
-                                                                                    onLongPress={() => dragStart()}/>;
+                                                                                    onLongPress={(ev) => dragStart(ev)}/>;
                                             }
                                             }/>
         </View>;

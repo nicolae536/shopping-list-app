@@ -2,7 +2,7 @@
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {Button, CheckBox, Form, Input, ListItem, View} from 'native-base';
 import * as React from 'react';
-import {Dimensions, Vibration, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
+import {Dimensions, Vibration, TouchableOpacity, TouchableWithoutFeedback, GestureResponderEvent} from 'react-native';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {SwipeActions} from '../swipe-to-remove/swipe-actions';
 import {NotesListItemDetailsAddEditStyle} from './notes-list-item-details-add-edit.style';
@@ -17,7 +17,7 @@ interface INotesListItemDetailsProps {
   onTextFocus?: () => void;
   onTextBlur?: () => void;
   onRemove?: () => void;
-  onLongPress?: () => void;
+  onLongPress?: (event: GestureResponderEvent) => void;
   onPressOut?: () => void;
 }
 
@@ -62,7 +62,7 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                     <View style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_CONTAINER}>
                         <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
                                           delayLongPress={100}
-                                          onLongPress={() => this.handleLongPress()}
+                                          onLongPress={(event) => this.handleLongPress(event)}
                                           onPressOut={() => this.handlePressOut()}>
                             <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
                                                     name={'arrow-split-horizontal'}/>
@@ -103,10 +103,10 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
     }
   }
 
-  private handleLongPress() {
+  private handleLongPress(event: GestureResponderEvent) {
     if (this.props.onLongPress) {
       Vibration.vibrate(50);
-      this.props.onLongPress();
+      this.props.onLongPress(event);
     }
   }
 
