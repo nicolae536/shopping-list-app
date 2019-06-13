@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Animated, ListRenderItemInfo, PanResponder, PanResponderInstance, View, GestureResponderEvent} from 'react-native';
+import {Animated, ListRenderItemInfo, PanResponder, PanResponderInstance, View, GestureResponderEvent, Vibration} from 'react-native';
 import {KeyboardAwareFlatList, KeyboardAwareFlatListProps} from 'react-native-keyboard-aware-scroll-view';
 
 interface IDraggableItem extends ListRenderItemInfo<any> {
@@ -50,15 +50,8 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         super(props, state);
 
         this._panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: (e, g) => {
-                console.log('start');
-                if (!!this.state.activeDraggingItem) {
-                    this.state.activeDraggingItem.item.itemYPosition.setValue(this.getPosition(g));
-                    return true;
-                }
-
-                return false;
-            },
+            onStartShouldSetPanResponder: (e, g) => !!this.state.activeDraggingItem,
+            onStartShouldSetPanResponderCapture: (e, g) => !!this.state.activeDraggingItem,
             onMoveShouldSetPanResponder: () => !!this.state.activeDraggingItem,
             onMoveShouldSetPanResponderCapture: () => !!this.state.activeDraggingItem,
             onPanResponderGrant: (e, g) => {
@@ -75,7 +68,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                 // scroll list up/down using flatlist ref
                 // consider creating drop slot on 2 items intersections
             },
-            onPanResponderRelease: (e, g) => {
+            onPanResponderEnd: (e, g) => {
                 Animated.timing(this.state.activeDraggingItem.item.itemPosition, {
                     toValue: 0,
                     duration: 100
@@ -132,6 +125,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                      {...this._panResponder.panHandlers}>
             <KeyboardAwareFlatList {...this.props}
                                    ref={ref => this._flatListRef = ref}
+                                   scrollEnabled={!this.state.activeDraggingItem}
                                    data={this.state.items}
                                    keyExtractor={(it, index) => this.props.keyExtractor(it.itemRef, index)}
                                    renderItem={info => this.renderItem(info)}/>
@@ -190,9 +184,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                     index: this.state.activeDraggingItem.index,
                     item: this.state.activeDraggingItem.item.itemRef,
                     separators: this.state.activeDraggingItem.separators,
-                    dragStart: (ev) => {
-                        this.dragStart(this.state.activeDraggingItem, ev);
-                    }
+                    dragStart: (ev) => {}
                 })}
             </Animated.View>;
     }
@@ -248,6 +240,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             });
 
 
+            Vibration.vibrate(50);
             this.draggingAnimationRef.start(() => {
                 this.draggingAnimationRef = null;
             });
