@@ -1,14 +1,15 @@
 import {MaterialCommunityIcons, Octicons} from '@expo/vector-icons';
 import React from 'react';
-import {createAppContainer, createBottomTabNavigator} from 'react-navigation';
+import {createBottomTabNavigator} from 'react-navigation';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {NotesListDetailsDone} from './notes-list-details-done/notes-list-details-done';
 import {NotesListDetailsNotDone} from './notes-list-details-not-done/notes-list-details-not-done';
 
-export const NavigatorConfig = createBottomTabNavigator({
+export const NotesListDetailsRouter = createBottomTabNavigator({
     NotesListDetailsNotDone: {screen: NotesListDetailsNotDone},
     NotesListDetailsDone: {screen: NotesListDetailsDone}
 }, {
+    initialRouteName: 'NotesListDetailsNotDone',
     defaultNavigationOptions: ({navigation}) => ({
         tabBarIcon: ({focused, horizontal, tintColor}) => {
             const {routeName} = navigation.state;
@@ -32,4 +33,3 @@ export const NavigatorConfig = createBottomTabNavigator({
         inactiveTintColor: 'gray',
     }
 });
-export const NotesListDetailsRouter = createAppContainer(NavigatorConfig);

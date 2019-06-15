@@ -1,6 +1,6 @@
-import {Text, View, Form, Item, Label, Input, Container} from 'native-base';
+import {Container, Form, Input, Item, Label, Text, View} from 'native-base';
 import React, {Component} from 'react';
-import {NavigationInjectedProps, NavigationContainerComponent} from 'react-navigation';
+import {NavigationContainerComponent, NavigationInjectedProps} from 'react-navigation';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {loggerInstance} from '../../components/logger';
@@ -14,69 +14,73 @@ import {notesListDetailsUpdate} from './notes-list-details-updaters';
 import {NotesListDetailsScreenStyle} from './notes-list-detils-screen.style';
 
 interface NotesListDetailsScreenState {
-    selectedView: string;
-    notesListTitle: string;
-    activeItem?: NotesList;
-    isKeyboardOpen: boolean;
+  selectedView: string;
+  notesListTitle: string;
+  activeItem?: NotesList;
+  isKeyboardOpen: boolean;
 }
 
 export class NotesListDetailsScreen extends Component<NavigationInjectedProps, NotesListDetailsScreenState> {
-    static navigationOptions = getNavigationOptions('Edit');
-    onUnMount: Subject<any> = new Subject();
+  static router = NotesListDetailsRouter.router;
+  static navigationOptions = getNavigationOptions('Edit');
+  onUnMount: Subject<any> = new Subject();
 
-    private navigatorRef: NavigationContainerComponent;
+  private navigatorRef: NavigationContainerComponent;
 
-    constructor(props, state) {
-        super(props, state);
+  constructor(props, state) {
+    super(props, state);
 
-        const {navigation} = this.props;
-        const translations = stateContainer.getTranslations();
+    const {navigation} = this.props;
+    const translations = stateContainer.getTranslations();
 
-        this.state = {
-            selectedView: 'NotesListDetailsNotDone',
-            isKeyboardOpen: false,
-            notesListTitle: translations.NOTES_LIST_ITEM.TITLE
-        };
-        notesListDetailsUpdate.activateOrCreateItem(navigation.getParam('id'));
+    this.state = {
+      selectedView: 'NotesListDetailsNotDone',
+      isKeyboardOpen: false,
+      notesListTitle: translations.NOTES_LIST_ITEM.TITLE
+    };
+    notesListDetailsUpdate.activateOrCreateItem(navigation.getParam('id'));
+  }
+
+  render() {
+    if (!this.state.activeItem) {
+      return <Text>Loading...</Text>;
     }
 
-    render() {
-        if (!this.state.activeItem) {
-            return <Text>Loading...</Text>;
-        }
+    const {navigation} = this.props;
+    console.log(navigation);
 
-        return <Container>
-            <View style={{flex: 1}}>
+    return <Container>
+      <View style={{flex: 1}}>
 
-                <Form style={NotesListDetailsScreenStyle.TitleContainer}>
-                    <Item floatingLabel>
-                        <Label style={NotesListDetailsScreenStyle.Title}>{this.state.notesListTitle}</Label>
-                        <Input value={this.state.activeItem!.title}
-                               style={NotesListDetailsScreenStyle.Title}
-                               onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
-                    </Item>
-                </Form>
-                <NotesListDetailsRouter ref={navigatorRef => {
-                    this.navigatorRef = navigatorRef;
-                }}/>
-            </View>
-        </Container>;
-    }
+        <Form style={NotesListDetailsScreenStyle.TitleContainer}>
+          <Item floatingLabel>
+            <Label style={NotesListDetailsScreenStyle.Title}>{this.state.notesListTitle}</Label>
+            <Input value={this.state.activeItem!.title}
+                   style={NotesListDetailsScreenStyle.Title}
+                   onChange={event => notesListDetailsUpdate.updateTitle(getTextValue(event))}/>
+          </Item>
+        </Form>
+        <NotesListDetailsRouter navigation={navigation} ref={navigatorRef => {
+          this.navigatorRef = navigatorRef;
+        }}/>
+      </View>
+    </Container>;
+  }
 
-    componentWillUnmount(): void {
-        this.onUnMount.next();
-        this.onUnMount.complete();
-        notesListDetailsUpdate.cleanState();
-    }
+  componentWillUnmount(): void {
+    this.onUnMount.next();
+    this.onUnMount.complete();
+    notesListDetailsUpdate.cleanState();
+  }
 
-    componentWillMount(): void {
-        notesListDetailsSelectors.activeItem$()
-            .pipe(takeUntil(this.onUnMount))
-            .subscribe(activeItem => {
-                loggerInstance.log('features.notes-list-details.NotesListDetailsScreen', 'active-item', activeItem);
-                this.setState({
-                    activeItem: activeItem
-                });
-            });
-    }
+  componentWillMount(): void {
+    notesListDetailsSelectors.activeItem$()
+      .pipe(takeUntil(this.onUnMount))
+      .subscribe(activeItem => {
+        loggerInstance.log('features.notes-list-details.NotesListDetailsScreen', 'active-item', activeItem);
+        this.setState({
+          activeItem: activeItem
+        });
+      });
+  }
 }
