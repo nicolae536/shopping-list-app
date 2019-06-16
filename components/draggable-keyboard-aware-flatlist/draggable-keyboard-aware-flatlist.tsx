@@ -29,12 +29,17 @@ interface ItemMeasure {
 export class AnimatableListItem {
   public isItemDragged: Animated.Value;
   public itemYPosition: Animated.Value;
-  public isItemHovered: Animated.Value;
+  public isItemHoveredTop: Animated.Value;
+  public isItemHoveredBottom: Animated.Value;
+
+  public hoverTopActive: boolean;
+  public hoverBottomActive: boolean;
 
   constructor(public itemRef) {
     this.isItemDragged = new Animated.Value(0);
     this.itemYPosition = new Animated.Value(0);
-    this.isItemHovered = new Animated.Value(0);
+    this.isItemHoveredTop = new Animated.Value(0);
+    this.isItemHoveredBottom = new Animated.Value(0);
   }
 }
 
@@ -75,19 +80,12 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         let nextSpacerIndex = this.getHoveredComponentOffset(e, g);
         console.log('Next hover', nextSpacerIndex);
         this.state.activeDraggingItem.item.itemYPosition.setValue(this.getPosition(g));
-        if (this.spacerIndex === nextSpacerIndex ||
-          this.state.activeDraggingItem.index === nextSpacerIndex) {
+        if (this.spacerIndex === nextSpacerIndex) {
           return;
         }
 
         // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        if (this.spacerIndex !== null && this.spacerIndex !== undefined) {
-          this.state.items[this.spacerIndex].isItemHovered.setValue(0);
-        }
-        if (this.state.items[nextSpacerIndex]) {
-          this.state.items[nextSpacerIndex].isItemHovered.setValue(1);
-        }
-        this.spacerIndex = nextSpacerIndex;
+        this.showItemSpacer(e, g, nextSpacerIndex);
         // make item follow the figner using absolute positioning
         // scroll list up/down using flatlist ref
         // consider creating drop slot on 2 items intersections
@@ -99,7 +97,8 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         }).start(() => {
 
           if (this.state.items[this.spacerIndex]) {
-            this.state.items[this.spacerIndex].isItemHovered.setValue(0);
+            this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
+            this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
           }
           this.setState({
             activeItemMeasures: null,
@@ -167,11 +166,41 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
     </View>;
   }
 
+  private showItemSpacer(e: GestureResponderEvent, g: PanResponderGestureState, nextSpacerIndex) {
+    if (this.state.items[this.spacerIndex]) {
+      console.log('Reset item');
+      this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
+      this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
+      this.state.items[this.spacerIndex].hoverTopActive = false;
+      this.state.items[this.spacerIndex].hoverBottomActive = false;
+    }
+
+    if (nextSpacerIndex === this.state.activeDraggingItem.index) {
+      return;
+    }
+
+    if (g.dy < 0) {
+      if (nextSpacerIndex !== null && nextSpacerIndex !== undefined) {
+        this.state.items[nextSpacerIndex].isItemHoveredTop.setValue(1);
+        this.state.items[nextSpacerIndex].hoverTopActive = true;
+        this.spacerIndex = nextSpacerIndex;
+      }
+
+      return;
+    }
+
+    if (nextSpacerIndex !== null && nextSpacerIndex !== undefined) {
+      this.state.items[nextSpacerIndex].isItemHoveredBottom.setValue(1);
+      this.state.items[nextSpacerIndex].hoverBottomActive = true;
+      this.spacerIndex = nextSpacerIndex;
+    }
+  }
+
   private renderItem(it: ListRenderItemInfo<AnimatableListItem>): React.ReactElement | null {
     const possibleDragStyles = this.getDragItemStyles(it);
 
     return <Animated.View style={possibleDragStyles}>
-      {it.index !== this.props.data.length - 1 ? this.renderSpacer(it) : null}
+      {this.renderSpacer(it)}
       <View onLayout={({nativeEvent}) => {
       }}
             ref={ref => {
@@ -185,7 +214,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             this.dragStart(it, event);
           }
         })}
-        {it.index === this.props.data.length - 1 ? this.renderSpacer(it) : null}
+        {this.renderSpacerBottom(it)}
       </View>
     </Animated.View>;
   }
@@ -315,34 +344,32 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
 
   private getHoveredComponentOffset(e: GestureResponderEvent, g: PanResponderGestureState) {
     const activeItemMeasure = this._localRefsMeasures[this.state.activeDraggingItem.index];
-    let heightMultiplier = g.dy > 0 ? 1 : -1;
-
-    const nextItemPixelOffset = Math.round(g.dy + activeItemMeasure.pageY + (heightMultiplier * activeItemMeasure.height / 2));
+    const nextItemPixelOffset = Math.round(g.dy + activeItemMeasure.pageY);
     const itemIndex = this._pixelToItemIndex[nextItemPixelOffset];
     const minItem = 0;
     const maxItem = this.props.data.length - 1;
 
-    if (itemIndex !== null || itemIndex !== undefined) {
+    if (itemIndex || itemIndex === 0) {
       return itemIndex;
     }
 
-    if (g.dy > 0 && nextItemPixelOffset < this._maxOffset) {
-      let cursor = nextItemPixelOffset;
-      while (!this._pixelToItemIndex[cursor] && cursor < this._maxOffset) {
-        cursor++;
-      }
-
-      return this._pixelToItemIndex[cursor] || minItem;
-    }
-
-    if (g.dy < 0 && nextItemPixelOffset > this._minOffset) {
-      let cursor = nextItemPixelOffset;
-      while (!this._pixelToItemIndex[cursor] && cursor > this._minOffset) {
-        cursor--;
-      }
-
-      return this._pixelToItemIndex[cursor] || maxItem;
-    }
+    // if (g.dy > 0 && nextItemPixelOffset < this._maxOffset) {
+    //   let cursor = nextItemPixelOffset;
+    //   while (!this._pixelToItemIndex[cursor] && cursor < this._maxOffset) {
+    //     cursor++;
+    //   }
+    //
+    //   return this._pixelToItemIndex[cursor] || minItem;
+    // }
+    //
+    // if (g.dy < 0 && nextItemPixelOffset > this._minOffset) {
+    //   let cursor = nextItemPixelOffset;
+    //   while (!this._pixelToItemIndex[cursor] && cursor > this._minOffset) {
+    //     cursor--;
+    //   }
+    //
+    //   return this._pixelToItemIndex[cursor] || maxItem;
+    // }
 
     if (e.nativeEvent.pageY < this._minOffset) {
       return minItem;
@@ -371,10 +398,10 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
           const max = Math.round(pageY + height);
 
           if (min <= this._minOffset) {
-            this._minOffset = min;
+            this._minOffset = +min;
           }
           if (max >= this._maxOffset) {
-            this._maxOffset = max;
+            this._maxOffset = +max;
           }
 
           for (let i = min; i <= max; i++) {
@@ -391,13 +418,19 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
   }
 
   private renderSpacer(it: ListRenderItemInfo<AnimatableListItem>) {
-    if (it === this.state.activeDraggingItem) {
-      return <Animated.View style={{height: 0}}/>;
-    }
-
-
     return <Animated.View style={{
-      height: it.item.isItemHovered.interpolate({
+      height: it.item.isItemHoveredTop.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 65],
+        extrapolate: 'clamp'
+      })
+    }}>
+    </Animated.View>;
+  }
+
+  private renderSpacerBottom(it: ListRenderItemInfo<AnimatableListItem>) {
+    return <Animated.View style={{
+      height: it.item.isItemHoveredBottom.interpolate({
         inputRange: [0, 1],
         outputRange: [0, 65],
         extrapolate: 'clamp'
