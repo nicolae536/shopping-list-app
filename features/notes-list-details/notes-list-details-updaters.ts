@@ -1,3 +1,4 @@
+import {LayoutAnimation} from 'react-native';
 import {AppStateModel} from '../../domain/app-state-model';
 import {NoteItem} from '../../domain/note-item';
 import {NotesList} from '../../domain/notes-list';
@@ -95,6 +96,7 @@ export const notesListDetailsUpdate = {
         });
     }),
     removeItem: (it: NoteItem) => stateContainer.pureStateUpdate(appState => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         let {doneNoteItems, noteItems} = appState.activeNotesList!;
         if (it.isDone) {
             doneNoteItems = doneNoteItems.filter(v => v.uuid !== it.uuid);

@@ -299,14 +299,14 @@ export class SortableFlatList extends Component<IProps, any> {
     };
 
 
-    getSpacerIndex = (move, activeRow) => {
+    getSpacerIndex = (pageXOrY, activeRow) => {
         const {horizontal} = this.props;
         if (activeRow === -1 || !this._measurements[activeRow]) {
             return -1;
         }
         // Find the row that contains the midpoint of the hovering item
         const hoverItemSize = this._measurements[activeRow][horizontal ? 'width' : 'height'];
-        const hoverItemMidpoint = move - this._additionalOffset + hoverItemSize / 2;
+        const hoverItemMidpoint = pageXOrY - this._additionalOffset + hoverItemSize / 2;
         const hoverPoint = Math.floor(hoverItemMidpoint + this._scrollOffset);
         let spacerIndex = this._pixels[hoverPoint];
         if (spacerIndex === undefined) {

@@ -1,8 +1,11 @@
 import * as Font from 'expo-font';
 import {StyleProvider} from 'native-base';
 import React, {Component} from 'react';
+import {UIManager} from 'react-native';
 import {AppNavigation} from './features/navigation/app-navigation';
 import {NATIVE_BASE_THEME} from './styles/variables';
+
+UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
 
 export default class App extends Component<any, { fontLoaded: boolean }> {
   constructor(props) {

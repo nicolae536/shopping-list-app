@@ -47,7 +47,6 @@ export class NotesListDetailsScreen extends Component<NavigationInjectedProps, N
     }
 
     const {navigation} = this.props;
-    console.log(navigation);
 
     return <Container>
       <View style={{flex: 1}}>
