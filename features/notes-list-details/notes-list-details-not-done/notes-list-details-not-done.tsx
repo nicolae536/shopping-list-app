@@ -53,6 +53,7 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
             </ListItem>
 
             <DraggableKeyboardAwareFlatlist data={this.state.activeItem!.noteItems}
+                                            style={{flex: 1}}
                                             enableOnAndroid={true}
                                             extraScrollHeight={40}
                                             onKeyboardWillShow={() => this.setState({
