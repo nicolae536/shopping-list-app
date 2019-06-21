@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
-import {Animated, GestureResponderEvent, ListRenderItemInfo, PanResponder, PanResponderInstance, Vibration, View} from 'react-native';
+import {
+    Animated, GestureResponderEvent, ListRenderItemInfo, PanResponder, PanResponderInstance, Vibration, View, ViewToken
+} from 'react-native';
 import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 import {DraggableListItem} from './draggable-list-item';
 import {IDraggableFlatListProps, IDraggableFlatListState, AnimatableListItem} from './draggable-list.models';
@@ -21,6 +23,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
     private _minOffset: number = 100000;
     private _maxOffset: number = -1;
     private spacerIndex: number;
+    private visibleItemIndexes: number[];
 
     constructor(props, state) {
         super(props, state);
@@ -35,7 +38,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             },
             onPanResponderMove: async (e, g) => {
                 const {pageY} = e.nativeEvent;
-                const {dy, moveY} = g;
+                const {dy, moveY, y0} = g;
 
                 this._flatListRef.scrollToOffset({
                     offset: this._scrollOffset + (dy / 15),
@@ -43,17 +46,12 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                 });
 
                 this.state.activeDraggingItem.item.itemYPosition.setValue(this.getPosition({moveY}));
-                let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy});
+                let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy,  moveY, y0});
                 if (this.spacerIndex === nextSpacerIndex) {
                     return;
                 }
 
-                // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 this.showItemSpacer(dy, nextSpacerIndex);
-                // await this.measureAllItems();
-                // make item follow the figner using absolute positioning
-                // scroll list up/down using flatlist ref
-                // consider creating drop slot on 2 items intersections
             },
             onPanResponderEnd: (e, g) => {
                 Animated.timing(this.state.activeDraggingItem.item.isItemDragged, {
@@ -74,6 +72,10 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                 // maybe with animation
             }
         });
+
+        this._localRefs = [];
+        this._localRefsMeasures = [];
+        this._pixelToItemIndex = [];
 
         this.state = {
             activeDraggingItem: null,
@@ -106,7 +108,6 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
     }
 
     render() {
-        this._localRefs = [];
         if (!this.state.items) {
             return <View/>;
         }
@@ -125,6 +126,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                                    onScroll={({nativeEvent}) => {
                                        this._scrollOffset = nativeEvent.contentOffset['y'];
                                    }}
+                                   onViewableItemsChanged={this.updateVisibleItems}
                                    keyExtractor={(it, index) => this.props.keyExtractor(it.itemRef, index)}
                                    renderItem={info => this.renderItem(info)}/>
             {this.renderDraggedItem()}
@@ -133,7 +135,6 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
 
     private showItemSpacer(dy: number, nextSpacerIndex) {
         if (this.state.items[this.spacerIndex]) {
-            console.log('Reset item');
             this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
             this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
             this.state.items[this.spacerIndex].hoverTopActive = false;
@@ -163,7 +164,8 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
 
     private renderItem(it: ListRenderItemInfo<AnimatableListItem>): React.ReactElement | null {
         return <DraggableListItem itemDef={it}
-                                  onRefMeasureUpdate={() => {
+                                  setItemRef={(ref) => {
+                                      this._localRefs[it.index] = ref;
                                   }}
                                   renderItem={item => this.props.renderItem(item)}
                                   onDragStart={(it, event) => this.dragStart(it, event)}/>;
@@ -205,11 +207,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
     }
 
     private async dragStart(it: ListRenderItemInfo<AnimatableListItem>, ev: GestureResponderEvent) {
-        // get it relative to screen position
-        // scale it to 0.8
-        // set pan responder to act
-        // on pan responder move update list view scroll position and it position to be the same relative on the screen
-        await this.measureAllItems();
+        await this.measureVisibleItems();
         it.item.itemYPosition.setValue(ev.nativeEvent.pageY - this._containerOffset);
 
         if (this.draggingAnimationRef) {
@@ -241,10 +239,8 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         });
     }
 
-    // UTILITY
     private measureContainer(ref) {
         if (ref && this._containerOffset === undefined) {
-            // setTimeout required or else dimensions reported as 0
             setTimeout(() => {
                 if (!ref) {
                     return;
@@ -257,10 +253,13 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         }
     };
 
-    private getHoveredComponentOffset({pageY, dy}: { pageY: number, dy: number }) {
+    private getHoveredComponentOffset({pageY, dy,  moveY, y0}: { pageY: number, dy: number, moveY: number, y0: number }) {
         const {activeItemMeasures} = this.state;
-        const nextItemPixelOffset = Math.round(this._scrollOffset + dy + activeItemMeasures.pageY);
+
+        const nextItemPixelOffset = Math.round(activeItemMeasures.pageY + this._scrollOffset + (moveY - y0));
         const itemIndex = this._pixelToItemIndex[nextItemPixelOffset];
+
+        // console.log('pixel -> ', nextItemPixelOffset, 'index -> ', itemIndex);
         const minItem = 0;
         const maxItem = this.props.data.length - 1;
 
@@ -268,23 +267,23 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             return itemIndex;
         }
 
-        // if (g.dy > 0 && nextItemPixelOffset < this._maxOffset) {
-        //   let cursor = nextItemPixelOffset;
-        //   while (!this._pixelToItemIndex[cursor] && cursor < this._maxOffset) {
-        //     cursor++;
-        //   }
-        //
-        //   return this._pixelToItemIndex[cursor] || minItem;
-        // }
-        //
-        // if (g.dy < 0 && nextItemPixelOffset > this._minOffset) {
-        //   let cursor = nextItemPixelOffset;
-        //   while (!this._pixelToItemIndex[cursor] && cursor > this._minOffset) {
-        //     cursor--;
-        //   }
-        //
-        //   return this._pixelToItemIndex[cursor] || maxItem;
-        // }
+        if (dy > 0 && nextItemPixelOffset < this._maxOffset) {
+          let cursor = nextItemPixelOffset;
+          while (!this._pixelToItemIndex[cursor] && cursor < this._maxOffset) {
+            cursor++;
+          }
+
+          return this._pixelToItemIndex[cursor] || minItem;
+        }
+
+        if (dy < 0 && nextItemPixelOffset > this._minOffset) {
+          let cursor = nextItemPixelOffset;
+          while (!this._pixelToItemIndex[cursor] && cursor > this._minOffset) {
+            cursor--;
+          }
+
+          return this._pixelToItemIndex[cursor] || maxItem;
+        }
 
         if (pageY < this._minOffset) {
             return minItem;
@@ -297,62 +296,77 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         return dy < 0 ? minItem : maxItem;
     }
 
-    private measureAllItems() {
-        return new Promise((r) => {
-            this._localRefsMeasures = [];
-            this._pixelToItemIndex = [];
-            this._localRefs.forEach((m, index) => {
-                if (!m) {
-                    return;
-                }
-
-                m.measure((x, y, width, height, pageX, pageY) => {
-                    this._localRefsMeasures[index] = {
-                        x, y, width, height, pageX, pageY,
-                        isMeasured: (!!x || !!y || !!width || !!height || !!pageX || !!pageY)
-                    };
-                    const min = Math.floor(pageY);
-                    const max = Math.round(pageY + height);
-
-                    if (min <= this._minOffset) {
-                        this._minOffset = +min;
-                    }
-                    if (max >= this._maxOffset) {
-                        this._maxOffset = +max;
-                    }
-
-                    for (let i = min; i <= max; i++) {
-                        this._pixelToItemIndex[i] = index;
-                    }
-
-                    if (this._localRefs.length === this._localRefsMeasures.length) {
-                        console.log('Measures', this._localRefsMeasures);
-                        r();
-                    }
-                });
-            });
+    private updateVisibleItems = (info: { viewableItems: Array<ViewToken>; changed: Array<ViewToken> }) => {
+        this.visibleItemIndexes = [];
+        info.viewableItems.forEach(v => {
+            if (v.isViewable) {
+                this.visibleItemIndexes.push(v.index);
+            }
         });
+        this.measureVisibleItems();
+    };
+
+    private measureVisibleItems() {
+        const refsToMeasure = [];
+
+        for (const visibleIndex of this.visibleItemIndexes) {
+            if (this._localRefs[visibleIndex] && (!this._localRefsMeasures[visibleIndex] || !this._localRefsMeasures[visibleIndex].isMeasured)) {
+                refsToMeasure.push({
+                    index: visibleIndex,
+                    item: this._localRefs[visibleIndex]
+                });
+            }
+        }
+
+        if (!refsToMeasure.length) {
+            return new Promise((resolve => resolve()));
+        }
+
+        return new Promise(((resolve) => {
+            setTimeout(() => {
+                let measuredCount = 0;
+
+                const increaseAndCheckPromiseEnd = () => {
+                    measuredCount++;
+                    if (measuredCount === refsToMeasure.length) {
+                        resolve();
+                    }
+                };
+                refsToMeasure.forEach((m) => {
+                    if (!m.item || (this._localRefsMeasures[m.index] && this._localRefsMeasures[m.index].isMeasured)) {
+                        increaseAndCheckPromiseEnd();
+                        return;
+                    }
+
+                    m.item.measure((x, y, width, height, pageX, pageY) => {
+                        this._localRefsMeasures[m.index] = {
+                            x, y, width, height, pageX, pageY,
+                            isMeasured: (!!x || !!y || !!width || !!height || !!pageX || !!pageY)
+                        };
+                        this.updatePixelsToIndexMap(pageY, height, m.index);
+                        increaseAndCheckPromiseEnd();
+                    });
+                });
+            }, 50);
+        }));
     }
 
-    private renderSpacer(it: ListRenderItemInfo<AnimatableListItem>) {
-        return <Animated.View style={{
-            height: it.item.isItemHoveredTop.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 65],
-                extrapolate: 'clamp'
-            })
-        }}>
-        </Animated.View>;
-    }
+    private updatePixelsToIndexMap(pageY, height, index) {
+        const itemRealOffset = pageY + this._scrollOffset;
+        const min = Math.floor(itemRealOffset);
+        const max = Math.round(itemRealOffset + height);
 
-    private renderSpacerBottom(it: ListRenderItemInfo<AnimatableListItem>) {
-        return <Animated.View style={{
-            height: it.item.isItemHoveredBottom.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 65],
-                extrapolate: 'clamp'
-            })
-        }}>
-        </Animated.View>;
+        if (min <= this._minOffset) {
+            this._minOffset = +min;
+        }
+        if (max >= this._maxOffset) {
+            this._maxOffset = +max;
+        }
+
+        for (let i = min; i <= max; i++) {
+            this._pixelToItemIndex[i] = index;
+        }
+
+        console.log('min', min, '->', 'max', max, index);
     }
 }

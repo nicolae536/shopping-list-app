@@ -4,11 +4,10 @@ import {AnimatableListItem, IDraggableItem} from './draggable-list.models';
 
 export class DraggableListItem extends PureComponent<{
     itemDef: ListRenderItemInfo<AnimatableListItem>,
+    setItemRef(ref: any);
     renderItem(item: IDraggableItem);
     onDragStart(item: ListRenderItemInfo<AnimatableListItem>, event: GestureResponderEvent);
-    onRefMeasureUpdate(itemDef: ListRenderItemInfo<AnimatableListItem>);
 }, any> {
-    private viewRef: any;
 
     constructor(props, state) {
         super(props, state);
@@ -23,7 +22,7 @@ export class DraggableListItem extends PureComponent<{
             <View onLayout={({nativeEvent}) => {
             }}
                   ref={ref => {
-                      this.viewRef = ref;
+                      this.props.setItemRef(ref);
                   }}>
                 {this.props.renderItem({
                     index: this.props.itemDef.index,
@@ -36,10 +35,6 @@ export class DraggableListItem extends PureComponent<{
                 {this.renderSpacerBottom(this.props.itemDef)}
             </View>
         </Animated.View>;
-    }
-
-    componentDidMount(): void {
-        console.log('component-did-mount');
     }
 
     private getDragItemStyles(item: ListRenderItemInfo<AnimatableListItem>) {
