@@ -70,18 +70,6 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                     newSpacerIndex > this.state.activeDraggingItem.index ? newSpacerIndex + 1 : newSpacerIndex,
                     0,
                     this.state.activeDraggingItem.item);
-                // if (newItemsList[newSpacerIndex].hoverTopActive) {
-                //     newItemsList.splice(
-                //         newSpacerIndex - 1 === 0 ? 0 : newSpacerIndex - 1,
-                //         0,
-                //         this.state.activeDraggingItem.item);
-                // } else if (newItemsList[newSpacerIndex].hoverBottomActive) {
-                //     newItemsList.splice(
-                //         newSpacerIndex + 1 === newItemsList.length ? newSpacerIndex : newSpacerIndex + 1,
-                //         0,
-                //         this.state.activeDraggingItem.item
-                //     );
-                // }
 
                 this.state.activeDraggingItem.item.isItemDragged.setValue(0);
                 this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
@@ -91,6 +79,7 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                     activeDraggingItem: null,
                     items: newItemsList
                 });
+                this.props.onItemsDropped(newItemsList.map(v => v.itemRef))
                 // drop item to position
                 // maybe with animation
             }

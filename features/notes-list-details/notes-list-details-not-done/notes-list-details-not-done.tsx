@@ -64,6 +64,7 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
                                             })}
                                             keyboardOpeningTime={50}
                                             keyExtractor={(item) => item.uuid}
+                                            onItemsDropped={(list) => notesListDetailsUpdate.updateNotesListOrder(list)}
                                             renderItem={({item, index, dragStart}) => {
                                                 return <NotesListItemDetailsAddEdit key={item.uuid}
                                                                                     canRemove={!item.isEmpty && !this.state.isKeyboardOpen}
