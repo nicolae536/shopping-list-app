@@ -46,12 +46,8 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                 });
 
                 this.state.activeDraggingItem.item.itemYPosition.setValue(this.getPosition({moveY}));
-                let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy,  moveY, y0});
-                if (this.spacerIndex === nextSpacerIndex) {
-                    return;
-                }
-
-                this.showItemSpacer(dy, nextSpacerIndex);
+                let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy, moveY, y0});
+                this.showItemSpacer(moveY, y0, nextSpacerIndex);
             },
             onPanResponderEnd: (e, g) => {
                 Animated.timing(this.state.activeDraggingItem.item.isItemDragged, {
@@ -133,7 +129,11 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         </View>;
     }
 
-    private showItemSpacer(dy: number, nextSpacerIndex) {
+    private showItemSpacer(moveY: number, y0: number, nextSpacerIndex: number) {
+        if (this.spacerIndex === nextSpacerIndex) {
+            return;
+        }
+
         if (this.state.items[this.spacerIndex]) {
             this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
             this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
@@ -145,7 +145,8 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             return;
         }
 
-        if (dy < 0) {
+        const showTopOrBottomSpacer = this.getGestureDyRelativeToFlatList(moveY, y0);
+        if (showTopOrBottomSpacer < 0) {
             if (nextSpacerIndex !== null && nextSpacerIndex !== undefined) {
                 this.state.items[nextSpacerIndex].isItemHoveredTop.setValue(1);
                 this.state.items[nextSpacerIndex].hoverTopActive = true;
@@ -160,6 +161,14 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             this.state.items[nextSpacerIndex].hoverBottomActive = true;
             this.spacerIndex = nextSpacerIndex;
         }
+    }
+
+    private getGestureDyRelativeToFlatList(moveY: number, y0: number) {
+        // y0 -> gesture start position
+        // moveY -> gesture current move
+        // moveY - y0 -> gesture dy difference
+        // moveY - y0 + this._scrollOffset -> gesture dy difference relative to list scroll offset
+        return moveY - y0 + this._scrollOffset;
     }
 
     private renderItem(it: ListRenderItemInfo<AnimatableListItem>): React.ReactElement | null {
@@ -253,36 +262,21 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         }
     };
 
-    private getHoveredComponentOffset({pageY, dy,  moveY, y0}: { pageY: number, dy: number, moveY: number, y0: number }) {
+    private getHoveredComponentOffset({pageY, dy, moveY, y0}: { pageY: number, dy: number, moveY: number, y0: number }) {
         const {activeItemMeasures} = this.state;
 
-        const nextItemPixelOffset = Math.round(activeItemMeasures.pageY + this._scrollOffset + (moveY - y0));
-        const itemIndex = this._pixelToItemIndex[nextItemPixelOffset];
+        // activeItemMeasures.pageY -> item position relative to viewport
+        // activeItemMeasures.pageY + this._scrollOffset -> item position relative to Flatlist
+        // moveY - y0 -> gesture dy relative to screen
+        const hoveredPixelOffsetRelativeToFlatListAndDraggedElement = Math.round(activeItemMeasures.pageY + this._scrollOffset + (moveY - y0));
+        const itemIndex = this._pixelToItemIndex[hoveredPixelOffsetRelativeToFlatListAndDraggedElement];
 
-        // console.log('pixel -> ', nextItemPixelOffset, 'index -> ', itemIndex);
         const minItem = 0;
         const maxItem = this.props.data.length - 1;
 
         if (itemIndex || itemIndex === 0) {
+            console.log('pixel -> ', hoveredPixelOffsetRelativeToFlatListAndDraggedElement, 'index -> ', itemIndex);
             return itemIndex;
-        }
-
-        if (dy > 0 && nextItemPixelOffset < this._maxOffset) {
-          let cursor = nextItemPixelOffset;
-          while (!this._pixelToItemIndex[cursor] && cursor < this._maxOffset) {
-            cursor++;
-          }
-
-          return this._pixelToItemIndex[cursor] || minItem;
-        }
-
-        if (dy < 0 && nextItemPixelOffset > this._minOffset) {
-          let cursor = nextItemPixelOffset;
-          while (!this._pixelToItemIndex[cursor] && cursor > this._minOffset) {
-            cursor--;
-          }
-
-          return this._pixelToItemIndex[cursor] || maxItem;
         }
 
         if (pageY < this._minOffset) {
@@ -293,7 +287,29 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
             return maxItem;
         }
 
-        return dy < 0 ? minItem : maxItem;
+        if (dy > 0 && hoveredPixelOffsetRelativeToFlatListAndDraggedElement < this._maxOffset) {
+            let cursor = hoveredPixelOffsetRelativeToFlatListAndDraggedElement;
+            while (!this._pixelToItemIndex[cursor] && cursor < this._maxOffset) {
+                cursor++;
+            }
+
+            console.log('pixel -> ', cursor, 'index -> ', this._pixelToItemIndex[cursor] || minItem);
+            return this._pixelToItemIndex[cursor] || minItem;
+        }
+
+        if (dy < 0 && hoveredPixelOffsetRelativeToFlatListAndDraggedElement > this._minOffset) {
+            let cursor = hoveredPixelOffsetRelativeToFlatListAndDraggedElement;
+            while (!this._pixelToItemIndex[cursor] && cursor > this._minOffset) {
+                cursor--;
+            }
+
+            console.log('pixel -> ', cursor, 'index -> ', this._pixelToItemIndex[cursor] || maxItem);
+            return this._pixelToItemIndex[cursor] || maxItem;
+        }
+
+        const fallbackValue = dy < 0 ? minItem : maxItem;
+        console.log('pixel -> ', hoveredPixelOffsetRelativeToFlatListAndDraggedElement, 'index -> ', fallbackValue);
+        return fallbackValue;
     }
 
     private updateVisibleItems = (info: { viewableItems: Array<ViewToken>; changed: Array<ViewToken> }) => {
@@ -352,9 +368,9 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
     }
 
     private updatePixelsToIndexMap(pageY, height, index) {
-        const itemRealOffset = pageY + this._scrollOffset;
-        const min = Math.floor(itemRealOffset);
-        const max = Math.round(itemRealOffset + height);
+        const itemOffsetRelativeToFlatList = pageY + this._scrollOffset;
+        const min = Math.floor(itemOffsetRelativeToFlatList);
+        const max = Math.round(itemOffsetRelativeToFlatList + height);
 
         if (min <= this._minOffset) {
             this._minOffset = +min;
@@ -366,7 +382,6 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         for (let i = min; i <= max; i++) {
             this._pixelToItemIndex[i] = index;
         }
-
-        console.log('min', min, '->', 'max', max, index);
+        // console.log('min', min, '->', 'max', max, index);
     }
 }
