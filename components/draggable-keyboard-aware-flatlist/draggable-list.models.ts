@@ -12,7 +12,6 @@ export interface IDraggableFlatListProps extends KeyboardAwareFlatListProps<any>
 export interface IDraggableFlatListState {
     activeDraggingItem: ListRenderItemInfo<AnimatableListItem>;
     activeItemMeasures: ItemMeasure;
-    draggingItemSpacerPosition: Animated.Value;
     items: AnimatableListItem[];
 }
 

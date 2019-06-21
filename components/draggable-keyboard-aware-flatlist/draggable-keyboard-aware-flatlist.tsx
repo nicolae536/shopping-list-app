@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {
-    Animated, GestureResponderEvent, ListRenderItemInfo, PanResponder, PanResponderInstance, Vibration, View, ViewToken
+    Animated, GestureResponderEvent, ListRenderItemInfo, PanResponder, PanResponderInstance, Vibration, View, ViewToken, LayoutAnimation
 } from 'react-native';
 import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 import {DraggableListItem} from './draggable-list-item';
@@ -48,11 +48,9 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                 this.showItemSpacer(moveY, y0, nextSpacerIndex);
             },
             onPanResponderEnd: (e, g) => {
-                Animated.timing(this.state.activeDraggingItem.item.isItemDragged, {
-                    toValue: 0,
-                    duration: 100
-                }).start(() => {
-
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                if (this.spacerIndex === this.state.activeDraggingItem.index) {
+                    this.state.activeDraggingItem.item.isItemDragged.setValue(0);
                     if (this.state.items[this.spacerIndex]) {
                         this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
                         this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
@@ -61,6 +59,37 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
                         activeItemMeasures: null,
                         activeDraggingItem: null
                     });
+                    return;
+                }
+
+                const itemRef = this.state.items[this.spacerIndex];
+                const newItemsList = this.state.items.filter(v => v !== this.state.activeDraggingItem.item);
+                const newSpacerIndex = newItemsList.indexOf(itemRef);
+                console.log('dropSpacer', newSpacerIndex, 'spacer', this.spacerIndex);
+                newItemsList.splice(
+                    newSpacerIndex > this.state.activeDraggingItem.index ? newSpacerIndex + 1 : newSpacerIndex,
+                    0,
+                    this.state.activeDraggingItem.item);
+                // if (newItemsList[newSpacerIndex].hoverTopActive) {
+                //     newItemsList.splice(
+                //         newSpacerIndex - 1 === 0 ? 0 : newSpacerIndex - 1,
+                //         0,
+                //         this.state.activeDraggingItem.item);
+                // } else if (newItemsList[newSpacerIndex].hoverBottomActive) {
+                //     newItemsList.splice(
+                //         newSpacerIndex + 1 === newItemsList.length ? newSpacerIndex : newSpacerIndex + 1,
+                //         0,
+                //         this.state.activeDraggingItem.item
+                //     );
+                // }
+
+                this.state.activeDraggingItem.item.isItemDragged.setValue(0);
+                this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
+                this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
+                this.setState({
+                    activeItemMeasures: null,
+                    activeDraggingItem: null,
+                    items: newItemsList
                 });
                 // drop item to position
                 // maybe with animation
@@ -74,7 +103,6 @@ export class DraggableKeyboardAwareFlatlist extends Component<IDraggableFlatList
         this.state = {
             activeDraggingItem: null,
             activeItemMeasures: null,
-            draggingItemSpacerPosition: new Animated.Value(-1),
             items: props.data ? props.data.map(v => new AnimatableListItem(v)) : []
         };
     }
