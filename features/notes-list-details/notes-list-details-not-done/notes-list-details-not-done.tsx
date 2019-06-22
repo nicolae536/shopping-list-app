@@ -2,9 +2,9 @@ import {View, ListItem, Text} from 'native-base';
 import React, {Component} from 'react';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
-import {DraggableKeyboardAwareFlatlist} from '../../../components/draggable-keyboard-aware-flatlist/draggable-keyboard-aware-flatlist';
+import {DraggableKeyboardAwareFlatList} from '../../../components/draggable-keyboard-aware-flatlist/draggable-keyboard-aware-flat-list';
 import {loggerInstance} from '../../../components/logger';
-import {NotesListItemDetailsAddEdit} from '../../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
+import {NotesListItemDetailsAddEdit} from '../notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 import {NotesList} from '../../../domain/notes-list';
 import {stateContainer} from '../../../domain/state-container';
 import {notesListDetailsSelectors} from '../notes-list-details-selectors';
@@ -52,7 +52,7 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
                 <Text>{this.state.notDoneListTitle}</Text>
             </ListItem>
 
-            <DraggableKeyboardAwareFlatlist data={this.state.activeItem!.noteItems}
+            <DraggableKeyboardAwareFlatList data={this.state.activeItem!.noteItems}
                                             style={{flex: 1}}
                                             enableOnAndroid={true}
                                             extraScrollHeight={40}

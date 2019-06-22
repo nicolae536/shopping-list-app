@@ -1,5 +1,5 @@
 import {StyleSheet} from 'react-native';
-import {NATIVE_BASE_THEME} from '../../styles/variables';
+import {NATIVE_BASE_THEME} from '../../../styles/variables';
 
 export const NotesListItemDetailsAddEditStyle = StyleSheet.create({
   MAIN_CONTAINER: {

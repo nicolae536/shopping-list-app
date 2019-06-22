@@ -7,6 +7,7 @@ export interface IDraggableItem extends ListRenderItemInfo<any> {
 
 export interface IDraggableFlatListProps extends KeyboardAwareFlatListProps<any> {
     onItemsDropped(it: any[]);
+
     renderItem(item: IDraggableItem);
 }
 
@@ -16,13 +17,23 @@ export interface IDraggableFlatListState {
     items: AnimatableListItem[];
 }
 
+export interface ItemMeasurableRef {
+    measure: (callback: (x: number,
+                         width: number,
+                         y: number,
+                         pageY: number,
+                         pageX: number,
+                         height: number) => void) => void
+}
+
 export interface ItemMeasure {
-    x: any;
-    width: any;
-    y: any;
-    pageY: any;
-    pageX: any;
-    height: any;
+    x: number;
+    width: number;
+    y: number;
+    pageY: number;
+    pageX: number;
+    height: number;
+    isMeasured: boolean;
 }
 
 export class AnimatableListItem {

@@ -4,7 +4,7 @@ import {NavigationContainerComponent, NavigationInjectedProps} from 'react-navig
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {loggerInstance} from '../../components/logger';
-import {getTextValue} from '../../components/notes-list-item-details-add-edit/notes-list-item-details-add-edit';
+import {getTextValue} from './notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 import {NotesList} from '../../domain/notes-list';
 import {stateContainer} from '../../domain/state-container';
 import {getNavigationOptions} from '../navigation/app-navigation-header';

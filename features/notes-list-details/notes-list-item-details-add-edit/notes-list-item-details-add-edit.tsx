@@ -3,8 +3,8 @@ import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {Button, CheckBox, Form, Input, ListItem, View} from 'native-base';
 import * as React from 'react';
 import {Dimensions, TouchableWithoutFeedback, GestureResponderEvent} from 'react-native';
-import {NATIVE_BASE_THEME} from '../../styles/variables';
-import {SwipeActions} from '../swipe-to-remove/swipe-actions';
+import {NATIVE_BASE_THEME} from '../../../styles/variables';
+import {SwipeActions} from '../../../components/swipe-to-remove/swipe-actions';
 import {NotesListItemDetailsAddEditStyle} from './notes-list-item-details-add-edit.style';
 
 interface INotesListItemDetailsProps {
