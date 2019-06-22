@@ -27,9 +27,10 @@
       "supportsTablet": true
     },
     "android": {
+      "icon": "./assets/icon.png",
       "adaptiveIcon": {
-        "backgroundColor": "transparent",
-        "backgroundImage": "./assets/icon.png"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundImage": "./assets/icon-background-android.png"
       },
       "package": "com.funhomeprojectsnic.checklistappnicu"
     }
