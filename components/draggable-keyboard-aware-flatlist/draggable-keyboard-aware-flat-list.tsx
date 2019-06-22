@@ -65,8 +65,8 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                           ref={ref => {
                               this._flatListRef = ref;
                           }}
-                          keyboardDismissMode={"interactive"}
-                          keyboardShouldPersistTaps={"handled"}
+                          keyboardDismissMode={'interactive'}
+                          keyboardShouldPersistTaps={'handled'}
                           scrollEnabled={!this.state.activeDraggingItem}
                           data={this.state.items}
                           onScroll={({nativeEvent}) => {
@@ -270,10 +270,14 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         const {pageY} = e.nativeEvent;
         const {dy, moveY, y0} = g;
 
-        this._flatListRef.scrollToOffset({
-            offset: this._scrollOffset + (dy / 10),
-            animated: false
-        });
+        const scrollValueDy = dy / 10;
+        const minScrollToAvoidFlicker = 3.5;
+        if (Math.abs(scrollValueDy) > minScrollToAvoidFlicker) {
+            this._flatListRef.scrollToOffset({
+                offset: this._scrollOffset + Math.round(scrollValueDy),
+                animated: false
+            });
+        }
 
         // Update animation in the next frame
         setTimeout(() => {
@@ -413,7 +417,8 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         }
 
         if (!this.state.items[this.spacerIndex]) {
-            return;;
+            return;
+            ;
         }
 
         const itemRef = this.state.items[this.spacerIndex];

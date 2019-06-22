@@ -53,10 +53,7 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                             disabled={!this.props.canToggleChecked}
                             style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}
                             onPress={() => this.checkboxToggle(null)}>
-                        <CheckBox style={{
-                            ...NotesListItemDetailsAddEditStyle.CHECK_BOX,
-                            opacity: this.props.canToggleChecked ? 1 : 0
-                        }}
+                        <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX}
                                   disabled={!this.props.canToggleChecked}
                                   onPress={(event) => this.checkboxToggle(event)}
                                   checked={this.props.checked}/>
@@ -67,19 +64,16 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            onBlur={() => this.onBlur()}
                            placeholder={this.props.textPlaceholder || ''}
                            value={this.props.textValue}/>
-                    {
-                        !this.props.canDrag
-                            ? null
-                            : <View style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_CONTAINER}>
-                                <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
-                                                          delayLongPress={100}
-                                                          onLongPress={(event) => this.handleLongPress(event)}
-                                                          onPressOut={() => this.handlePressOut()}>
-                                    <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
-                                                            name={'arrow-split-horizontal'}/>
-                                </TouchableWithoutFeedback>
-                            </View>
-                    }
+                    <View style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_CONTAINER}>
+                        <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
+                                                  delayLongPress={100}
+                                                  disabled={!this.props.canDrag}
+                                                  onLongPress={(event) => this.handleLongPress(event)}
+                                                  onPressOut={() => this.handlePressOut()}>
+                            <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
+                                                    name={'arrow-split-horizontal'}/>
+                        </TouchableWithoutFeedback>
+                    </View>
                 </Form>
             </ListItem>
         </SwipeActions>;
