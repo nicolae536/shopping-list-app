@@ -1,7 +1,13 @@
 import React, {Component} from 'react';
 import {Keyboard, EmitterSubscription, KeyboardEventListener, Animated} from 'react-native';
 
-export class KeyboardSpacer extends Component<{ keyboardVerticalOffset?: number }, { keyboardHeight: Animated.Value }> {
+export interface IKeyboardSpacer {
+    keyboardVerticalOffset?: number;
+    onKeyboardOpened?: () => void;
+    onKeyboardClosed?: () => void;
+}
+
+export class KeyboardSpacer extends Component<IKeyboardSpacer, { keyboardHeight: Animated.Value }> {
     private keyboardDidShowListener: EmitterSubscription;
     private keyboardDidHideListener: EmitterSubscription;
     private closeAnimation: Animated.CompositeAnimation;
@@ -37,7 +43,13 @@ export class KeyboardSpacer extends Component<{ keyboardVerticalOffset?: number 
             duration: 50
         });
 
-        this.closeAnimation.start(() => this.closeAnimation = null);
+        this.closeAnimation.start(() => {
+            this.closeAnimation = null;
+
+            if (this.props.onKeyboardClosed) {
+                this.props.onKeyboardClosed();
+            }
+        });
     };
 
     private _keyboardDidShow: KeyboardEventListener = (e) => {
@@ -50,10 +62,15 @@ export class KeyboardSpacer extends Component<{ keyboardVerticalOffset?: number 
 
         this.startAnimation = Animated.timing(this.state.keyboardHeight, {
             toValue: keyboardHeight - (this.props.keyboardVerticalOffset || 45),
-            duration: 100,
-            delay: 100
+            duration: 150,
+            delay: 150
         });
 
-        this.startAnimation.start(() => this.startAnimation = null);
+        this.startAnimation.start(() => {
+            this.startAnimation = null;
+            if (this.props.onKeyboardOpened) {
+                this.props.onKeyboardOpened();
+            }
+        });
     };
 }

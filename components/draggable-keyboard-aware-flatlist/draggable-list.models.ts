@@ -11,6 +11,9 @@ export interface IDraggableFlatListProps extends KeyboardAwareFlatListProps<any>
     onItemsDropped(it: any[]);
 
     renderItem(item: IDraggableItem);
+
+    onKeyboardOpened?: () => void;
+    onKeyboardClosed?: () => void;
 }
 
 export interface IDraggableFlatListState {

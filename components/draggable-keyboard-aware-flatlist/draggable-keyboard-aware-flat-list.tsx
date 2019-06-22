@@ -62,11 +62,11 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                   style={{position: 'relative', flex: 1}}
                   {...this._panResponder.panHandlers}>
                 <FlatList {...this.props}
-                          keyboardShouldPersistTaps='handled'
-                          keyboardDismissMode='interactive'
                           ref={ref => {
                               this._flatListRef = ref;
                           }}
+                          keyboardDismissMode={"interactive"}
+                          keyboardShouldPersistTaps={"handled"}
                           scrollEnabled={!this.state.activeDraggingItem}
                           data={this.state.items}
                           onScroll={({nativeEvent}) => {
@@ -77,7 +77,15 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                           renderItem={info => this.renderItem(info)}/>
                 {this.renderDraggedItem()}
             </View>
-            <KeyboardSpacer/>
+            <KeyboardSpacer onKeyboardClosed={() => {
+                if (this.props.onKeyboardClosed) {
+                    this.props.onKeyboardClosed();
+                }
+            }} onKeyboardOpened={() => {
+                if (this.props.onKeyboardOpened) {
+                    this.props.onKeyboardOpened();
+                }
+            }}/>
         </View>;
     }
 
@@ -254,41 +262,7 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                 this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY: g.moveY}));
             },
             onPanResponderMove: async (e, g) => this.handlePanResponderMove(e, g),
-            onPanResponderEnd: () => {
-                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                if (this.spacerIndex === this.state.activeDraggingItem.index) {
-                    this.state.activeDraggingItem.item.isItemDragged.setValue(0);
-                    if (this.state.items[this.spacerIndex]) {
-                        this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
-                        this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
-                    }
-                    this.setState({
-                        activeItemMeasures: null,
-                        activeDraggingItem: null
-                    });
-                    return;
-                }
-
-                const itemRef = this.state.items[this.spacerIndex];
-                const newItemsList = this.state.items.filter(v => v !== this.state.activeDraggingItem.item);
-                const newSpacerIndex = newItemsList.indexOf(itemRef);
-                newItemsList.splice(
-                    newSpacerIndex > this.state.activeDraggingItem.index ? newSpacerIndex + 1 : newSpacerIndex,
-                    0,
-                    this.state.activeDraggingItem.item);
-
-                this.state.activeDraggingItem.item.isItemDragged.setValue(0);
-                this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
-                this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
-                this.setState({
-                    activeItemMeasures: null,
-                    activeDraggingItem: null,
-                    items: newItemsList
-                });
-                setTimeout(() => {
-                    this.props.onItemsDropped(newItemsList.map(v => v.itemRef));
-                });
-            }
+            onPanResponderEnd: () => this.handlePanResponderEnd()
         });
     }
 
@@ -399,7 +373,7 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
 
         const showTopOrBottomSpacer = this.getGestureDyRelativeToFlatList(moveY, y0);
         if (showTopOrBottomSpacer < 0) {
-            if (nextSpacerIndex !== null && nextSpacerIndex !== undefined) {
+            if (nextSpacerIndex !== null && nextSpacerIndex !== undefined && this.state.items[nextSpacerIndex]) {
                 this.state.items[nextSpacerIndex].isItemHoveredTop.setValue(1);
                 this.state.items[nextSpacerIndex].hoverTopActive = true;
                 this.spacerIndex = nextSpacerIndex;
@@ -421,6 +395,46 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         // moveY - y0 -> gesture dy difference
         // moveY - y0 + this._scrollOffset -> gesture dy difference relative to list scroll offset
         return moveY - y0 + this._scrollOffset;
+    }
+
+    private handlePanResponderEnd() {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        if (this.spacerIndex === this.state.activeDraggingItem.index) {
+            this.state.activeDraggingItem.item.isItemDragged.setValue(0);
+            if (this.state.items[this.spacerIndex]) {
+                this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
+                this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
+            }
+            this.setState({
+                activeItemMeasures: null,
+                activeDraggingItem: null
+            });
+            return;
+        }
+
+        if (!this.state.items[this.spacerIndex]) {
+            return;;
+        }
+
+        const itemRef = this.state.items[this.spacerIndex];
+        const newItemsList = this.state.items.filter(v => v !== this.state.activeDraggingItem.item);
+        const newSpacerIndex = newItemsList.indexOf(itemRef);
+        newItemsList.splice(
+            newSpacerIndex > this.state.activeDraggingItem.index ? newSpacerIndex + 1 : newSpacerIndex,
+            0,
+            this.state.activeDraggingItem.item);
+
+        this.state.activeDraggingItem.item.isItemDragged.setValue(0);
+        this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
+        this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
+        this.setState({
+            activeItemMeasures: null,
+            activeDraggingItem: null,
+            items: newItemsList
+        });
+        setTimeout(() => {
+            this.props.onItemsDropped(newItemsList.map(v => v.itemRef));
+        });
     }
 
     private resetItemsRefMeasuresAndPixelsToIndexes() {

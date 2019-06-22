@@ -3,8 +3,8 @@ import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {Button, CheckBox, Form, Input, ListItem, View} from 'native-base';
 import * as React from 'react';
 import {Dimensions, TouchableWithoutFeedback, GestureResponderEvent} from 'react-native';
-import {NATIVE_BASE_THEME} from '../../../styles/variables';
 import {SwipeActions} from '../../../components/swipe-to-remove/swipe-actions';
+import {NATIVE_BASE_THEME} from '../../../styles/variables';
 import {NotesListItemDetailsAddEditStyle} from './notes-list-item-details-add-edit.style';
 
 interface INotesListItemDetailsProps {
@@ -12,6 +12,8 @@ interface INotesListItemDetailsProps {
     textValue: string;
     checked: boolean;
     canRemove: boolean;
+    canDrag?: boolean;
+    canToggleChecked?: boolean;
     onCheckboxChange?: (value: boolean) => void;
     onTextChange?: (value: string) => void;
     onTextFocus?: () => void;
@@ -48,9 +50,14 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
             <ListItem style={NotesListItemDetailsAddEditStyle.LIST_ITEM}>
                 <Form style={NotesListItemDetailsAddEditStyle.MAIN_CONTAINER}>
                     <Button transparent
+                            disabled={!this.props.canToggleChecked}
                             style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}
                             onPress={() => this.checkboxToggle(null)}>
-                        <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX}
+                        <CheckBox style={{
+                            ...NotesListItemDetailsAddEditStyle.CHECK_BOX,
+                            opacity: this.props.canToggleChecked ? 1 : 0
+                        }}
+                                  disabled={!this.props.canToggleChecked}
                                   onPress={(event) => this.checkboxToggle(event)}
                                   checked={this.props.checked}/>
                     </Button>
@@ -60,15 +67,19 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            onBlur={() => this.onBlur()}
                            placeholder={this.props.textPlaceholder || ''}
                            value={this.props.textValue}/>
-                    <View style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_CONTAINER}>
-                        <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
-                                                  delayLongPress={100}
-                                                  onLongPress={(event) => this.handleLongPress(event)}
-                                                  onPressOut={() => this.handlePressOut()}>
-                            <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
-                                                    name={'arrow-split-horizontal'}/>
-                        </TouchableWithoutFeedback>
-                    </View>
+                    {
+                        !this.props.canDrag
+                            ? null
+                            : <View style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_CONTAINER}>
+                                <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
+                                                          delayLongPress={100}
+                                                          onLongPress={(event) => this.handleLongPress(event)}
+                                                          onPressOut={() => this.handlePressOut()}>
+                                    <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
+                                                            name={'arrow-split-horizontal'}/>
+                                </TouchableWithoutFeedback>
+                            </View>
+                    }
                 </Form>
             </ListItem>
         </SwipeActions>;

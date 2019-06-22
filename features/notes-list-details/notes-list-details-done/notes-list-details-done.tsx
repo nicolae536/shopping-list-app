@@ -49,7 +49,9 @@ export class NotesListDetailsDone extends Component<INotesListDetailsDoneProps, 
                                             renderItem={({item, index, dragStart}) => {
                                                 return <NotesListItemDetailsAddEdit
                                                     key={item.uuid}
-                                                    canRemove={!this.state.isKeyboardOpen}
+                                                    canRemove={true}
+                                                    canDrag={true}
+                                                    canToggleChecked={true}
                                                     checked={item.isDone}
                                                     textValue={item.description}
                                                     onTextFocus={() => notesListDetailsUpdate.markNoteItemAsActive(item)}

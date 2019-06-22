@@ -61,7 +61,9 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
                                             onItemsDropped={(list) => notesListDetailsUpdate.updateNotesListOrder(list)}
                                             renderItem={({item, index, dragStart}) => {
                                                 return <NotesListItemDetailsAddEdit key={item.uuid}
-                                                                                    canRemove={!item.isEmpty && !this.state.isKeyboardOpen}
+                                                                                    canRemove={!item.isEmpty}
+                                                                                    canDrag={!item.isEmpty}
+                                                                                    canToggleChecked={!item.isEmpty}
                                                                                     checked={item.isDone}
                                                                                     textPlaceholder={item.isEmpty
                                                                                         ? this.state.addNewItemPlaceholder
