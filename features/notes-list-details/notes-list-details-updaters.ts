@@ -96,7 +96,6 @@ export const notesListDetailsUpdate = {
         });
     }),
     removeItem: (it: NoteItem) => stateContainer.pureStateUpdate(appState => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         let {doneNoteItems, noteItems} = appState.activeNotesList!;
         if (it.isDone) {
             doneNoteItems = doneNoteItems.filter(v => v.uuid !== it.uuid);
@@ -132,6 +131,13 @@ export const notesListDetailsUpdate = {
         return appState.update({
             activeNotesList: appState.activeNotesList!.update({
                 noteItems: data
+            })
+        });
+    }),
+    updateDoneNotesListOrder: (data: NoteItem[]) => stateContainer.pureStateUpdate(appState => {
+        return appState.update({
+            activeNotesList: appState.activeNotesList!.update({
+                doneNoteItems: data
             })
         });
     })

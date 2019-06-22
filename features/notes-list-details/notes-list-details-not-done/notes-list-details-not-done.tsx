@@ -1,5 +1,6 @@
 import {View, ListItem, Text} from 'native-base';
 import React, {Component} from 'react';
+import {LayoutAnimation} from 'react-native';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {DraggableKeyboardAwareFlatList} from '../../../components/draggable-keyboard-aware-flatlist/draggable-keyboard-aware-flat-list';
@@ -67,9 +68,9 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
                                                                                         : ''}
                                                                                     textValue={item.description}
                                                                                     onTextFocus={() => notesListDetailsUpdate.markNoteItemAsActive(item)}
-                                                                                    onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(item, checked)}
+                                                                                    onCheckboxChange={checked => this.handleCheckboxChange(item, checked)}
                                                                                     onTextChange={newText => notesListDetailsUpdate.updateNotDoneNoteItemDescription(index, newText)}
-                                                                                    onRemove={() => notesListDetailsUpdate.removeItem(item)}
+                                                                                    onRemove={() => this.handleRemoveItem(item)}
                                                                                     onLongPress={(ev) => dragStart(ev)}/>;
                                             }
                                             }/>
@@ -79,5 +80,15 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
     componentWillUnmount(): void {
         this.onUnMount.next();
         this.onUnMount.complete();
+    }
+
+    private handleRemoveItem(item: any) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        notesListDetailsUpdate.removeItem(item);
+    }
+
+    private handleCheckboxChange(item: any, checked: boolean) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        notesListDetailsUpdate.updateNoteItemIsDone(item, checked)
     }
 }

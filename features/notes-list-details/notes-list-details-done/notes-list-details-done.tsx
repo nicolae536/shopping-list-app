@@ -1,15 +1,16 @@
 import {ListItem, Text, View} from 'native-base';
 import React, {Component} from 'react';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {LayoutAnimation} from 'react-native';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
+import {DraggableKeyboardAwareFlatList} from '../../../components/draggable-keyboard-aware-flatlist/draggable-keyboard-aware-flat-list';
 import {loggerInstance} from '../../../components/logger';
-import {NotesListItemDetailsAddEdit} from '../notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 import {NotesList} from '../../../domain/notes-list';
 import {stateContainer} from '../../../domain/state-container';
 import {notesListDetailsSelectors} from '../notes-list-details-selectors';
 import {notesListDetailsUpdate} from '../notes-list-details-updaters';
 import {NotesListDetailsScreenStyle} from '../notes-list-detils-screen.style';
+import {NotesListItemDetailsAddEdit} from '../notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 
 interface INotesListDetailsDoneProps {
 }
@@ -30,7 +31,7 @@ export class NotesListDetailsDone extends Component<INotesListDetailsDoneProps, 
 
         this.state = {
             isKeyboardOpen: false,
-            notDoneListTitle: translations.NOTES_LIST_ITEM.NOT_DONE_TILE
+            notDoneListTitle: translations.NOTES_LIST_ITEM.DONE_TILE
         };
     }
 
@@ -39,28 +40,25 @@ export class NotesListDetailsDone extends Component<INotesListDetailsDoneProps, 
             <ListItem itemDivider style={NotesListDetailsScreenStyle.ListItemDivider}>
                 <Text>{this.state.notDoneListTitle}</Text>
             </ListItem>
-            <KeyboardAwareScrollView enableOnAndroid={true}
-                                     extraScrollHeight={40}
-                                     onKeyboardWillShow={() => this.setState({
-                                         isKeyboardOpen: true
-                                     })}
-                                     onKeyboardWillHide={() => this.setState({
-                                         isKeyboardOpen: false
-                                     })}
-                                     keyboardOpeningTime={50}>
-                {
-                    this.state.activeItem!.doneNoteItems
-                        .map((it, idx) => <NotesListItemDetailsAddEdit
-                            key={it.uuid}
-                            canRemove={!this.state.isKeyboardOpen}
-                            checked={it.isDone}
-                            textValue={it.description}
-                            onTextFocus={() => notesListDetailsUpdate.markNoteItemAsActive(it)}
-                            onCheckboxChange={checked => notesListDetailsUpdate.updateNoteItemIsDone(it, checked)}
-                            onTextChange={newText => notesListDetailsUpdate.updateDoneNoteItemDescription(idx, newText)}
-                            onRemove={() => notesListDetailsUpdate.removeItem(it)}/>)
-                }
-            </KeyboardAwareScrollView>
+            <DraggableKeyboardAwareFlatList data={this.state.activeItem!.doneNoteItems}
+                                            style={{flex: 1}}
+                                            enableOnAndroid={true}
+                                            extraScrollHeight={150}
+                                            keyExtractor={(item) => item.uuid}
+                                            onItemsDropped={(list) => notesListDetailsUpdate.updateDoneNotesListOrder(list)}
+                                            renderItem={({item, index, dragStart}) => {
+                                                return <NotesListItemDetailsAddEdit
+                                                    key={item.uuid}
+                                                    canRemove={!this.state.isKeyboardOpen}
+                                                    checked={item.isDone}
+                                                    textValue={item.description}
+                                                    onTextFocus={() => notesListDetailsUpdate.markNoteItemAsActive(item)}
+                                                    onCheckboxChange={checked => this.handleCheckboxChange(item, checked)}
+                                                    onTextChange={newText => notesListDetailsUpdate.updateDoneNoteItemDescription(index, newText)}
+                                                    onRemove={() => this.handleRemoveItem(item)}
+                                                    onLongPress={(ev) => dragStart(ev)}
+                                                />;
+                                            }}/>
         </View>;
     }
 
@@ -78,5 +76,15 @@ export class NotesListDetailsDone extends Component<INotesListDetailsDoneProps, 
     componentWillUnmount(): void {
         this.onUnMount.next();
         this.onUnMount.complete();
+    }
+
+    private handleRemoveItem(item: any) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        notesListDetailsUpdate.removeItem(item);
+    }
+
+    private handleCheckboxChange(item: any, checked: boolean) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        notesListDetailsUpdate.updateNoteItemIsDone(item, checked)
     }
 }

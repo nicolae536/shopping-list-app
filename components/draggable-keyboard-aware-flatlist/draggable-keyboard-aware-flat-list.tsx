@@ -336,8 +336,8 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         const hoveredPixelOffsetRelativeToFlatListAndDraggedElement = Math.round(activeItemMeasures.pageY + this._scrollOffset + (moveY - y0));
         const itemIndex = this._pixelToItemIndex[hoveredPixelOffsetRelativeToFlatListAndDraggedElement];
 
-        const minItem = 0;
-        const maxItem = this.props.data.length - 1;
+        const minItemIndex = 0;
+        const maxItemIndex = this.props.data.length - 1;
 
         if (itemIndex || itemIndex === 0) {
             this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, itemIndex);
@@ -345,13 +345,13 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         }
 
         if (pageY < this._minOffset) {
-            this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, minItem);
-            return minItem;
+            this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, minItemIndex);
+            return minItemIndex;
         }
 
         if (pageY > this._maxOffset) {
-            this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, maxItem);
-            return maxItem;
+            this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, maxItemIndex);
+            return maxItemIndex;
         }
 
         if (dy > 0 && hoveredPixelOffsetRelativeToFlatListAndDraggedElement < this._maxOffset) {
@@ -360,7 +360,7 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                 cursor++;
             }
 
-            const minToReturn = this._pixelToItemIndex[cursor] || minItem;
+            const minToReturn = this._pixelToItemIndex[cursor] || minItemIndex;
             this.logHoveredComponent(cursor, minToReturn);
             return minToReturn;
         }
@@ -371,12 +371,12 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                 cursor--;
             }
 
-            const maxToReturn = this._pixelToItemIndex[cursor] || maxItem;
+            const maxToReturn = this._pixelToItemIndex[cursor] || maxItemIndex;
             this.logHoveredComponent(cursor, maxToReturn);
             return maxToReturn;
         }
 
-        const fallbackValue = dy < 0 ? minItem : maxItem;
+        const fallbackValue = dy < 0 ? minItemIndex : maxItemIndex;
         this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, fallbackValue);
         return fallbackValue;
     }

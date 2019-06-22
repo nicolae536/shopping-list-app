@@ -49,8 +49,9 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                 <Form style={NotesListItemDetailsAddEditStyle.MAIN_CONTAINER}>
                     <Button transparent
                             style={NotesListItemDetailsAddEditStyle.BUTTON_STYLE}
-                            onPress={() => this.checkboxToggle()}>
+                            onPress={() => this.checkboxToggle(null)}>
                         <CheckBox style={NotesListItemDetailsAddEditStyle.CHECK_BOX}
+                                  onPress={(event) => this.checkboxToggle(event)}
                                   checked={this.props.checked}/>
                     </Button>
                     <Input onChange={(event) => this.textInputChange(getTextValue(event))}
@@ -79,7 +80,10 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
         }
     }
 
-    private checkboxToggle() {
+    private checkboxToggle(event: GestureResponderEvent) {
+        if (event) {
+            event.stopPropagation();
+        }
         if (this.props.onCheckboxChange) {
             this.props.onCheckboxChange(!this.props.checked);
         }
