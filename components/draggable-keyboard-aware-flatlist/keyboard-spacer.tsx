@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
 import {Keyboard, EmitterSubscription, KeyboardEventListener, Animated} from 'react-native';
 
-export class KeyboardSpacer extends Component<{keyboardVerticalOffset?: number}, { keyboardHeight: Animated.Value }> {
+export class KeyboardSpacer extends Component<{ keyboardVerticalOffset?: number }, { keyboardHeight: Animated.Value }> {
     private keyboardDidShowListener: EmitterSubscription;
     private keyboardDidHideListener: EmitterSubscription;
+    private closeAnimation: Animated.CompositeAnimation;
+    private startAnimation: Animated.CompositeAnimation;
 
     constructor(props, state) {
         super(props, state);
@@ -25,20 +27,33 @@ export class KeyboardSpacer extends Component<{keyboardVerticalOffset?: number},
     }
 
     private _keyboardDidHide: KeyboardEventListener = (e) => {
-        Animated.timing(this.state.keyboardHeight, {
+        if (this.startAnimation) {
+            this.startAnimation.stop();
+            this.startAnimation = null;
+        }
+
+        this.closeAnimation = Animated.timing(this.state.keyboardHeight, {
             toValue: 0,
-            duration: 100,
-            delay: 50
-        }).start();
+            duration: 50
+        });
+
+        this.closeAnimation.start(() => this.closeAnimation = null);
     };
 
     private _keyboardDidShow: KeyboardEventListener = (e) => {
         const keyboardHeight = e.endCoordinates.height;
-        console.log('keyboardHeight', keyboardHeight);
-        Animated.timing(this.state.keyboardHeight, {
+
+        if (this.closeAnimation) {
+            this.closeAnimation.stop();
+            this.closeAnimation = null;
+        }
+
+        this.startAnimation = Animated.timing(this.state.keyboardHeight, {
             toValue: keyboardHeight - (this.props.keyboardVerticalOffset || 45),
             duration: 100,
-            delay: 50
-        }).start();
+            delay: 100
+        });
+
+        this.startAnimation.start(() => this.startAnimation = null);
     };
 }
