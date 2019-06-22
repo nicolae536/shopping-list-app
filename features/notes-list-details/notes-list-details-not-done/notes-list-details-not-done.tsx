@@ -4,12 +4,12 @@ import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {DraggableKeyboardAwareFlatList} from '../../../components/draggable-keyboard-aware-flatlist/draggable-keyboard-aware-flat-list';
 import {loggerInstance} from '../../../components/logger';
-import {NotesListItemDetailsAddEdit} from '../notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 import {NotesList} from '../../../domain/notes-list';
 import {stateContainer} from '../../../domain/state-container';
 import {notesListDetailsSelectors} from '../notes-list-details-selectors';
 import {notesListDetailsUpdate} from '../notes-list-details-updaters';
 import {NotesListDetailsScreenStyle} from '../notes-list-detils-screen.style';
+import {NotesListItemDetailsAddEdit} from '../notes-list-item-details-add-edit/notes-list-item-details-add-edit';
 
 interface INotesListDetailsNotDoneProps {
 }
@@ -55,14 +55,7 @@ export class NotesListDetailsNotDone extends Component<INotesListDetailsNotDoneP
             <DraggableKeyboardAwareFlatList data={this.state.activeItem!.noteItems}
                                             style={{flex: 1}}
                                             enableOnAndroid={true}
-                                            extraScrollHeight={40}
-                                            onKeyboardWillShow={() => this.setState({
-                                                isKeyboardOpen: true
-                                            })}
-                                            onKeyboardWillHide={() => this.setState({
-                                                isKeyboardOpen: false
-                                            })}
-                                            keyboardOpeningTime={50}
+                                            extraScrollHeight={150}
                                             keyExtractor={(item) => item.uuid}
                                             onItemsDropped={(list) => notesListDetailsUpdate.updateNotesListOrder(list)}
                                             renderItem={({item, index, dragStart}) => {

@@ -17,6 +17,7 @@
     "react-dom": "^16.8.6",
     "react-native": "https://github.com/expo/react-native/archive/sdk-33.0.0.tar.gz",
     "react-native-keyboard-aware-scroll-view": "^0.8.0",
+    "react-native-keyboard-spacer": "^0.4.1",
     "react-native-web": "^0.11.4",
     "react-navigation": "^3.11.0",
     "rxjs": "^6.5.2",
@@ -26,6 +27,7 @@
     "@types/expo": "^32.0.13",
     "@types/react": "^16.8.19",
     "@types/react-native": "^0.57.60",
+    "@types/react-native-keyboard-spacer": "^0.4.1",
     "babel-preset-expo": "^5.1.1",
     "typescript": "^3.4.5"
   },

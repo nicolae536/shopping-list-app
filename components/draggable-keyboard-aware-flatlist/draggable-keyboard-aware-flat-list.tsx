@@ -1,13 +1,13 @@
 import React, {Component} from 'react';
 import {
     Animated, GestureResponderEvent, ListRenderItemInfo, PanResponder, PanResponderInstance, Vibration, View, ViewToken, LayoutAnimation,
-    PanResponderGestureState
+    PanResponderGestureState, FlatList
 } from 'react-native';
-import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 import {DraggableListItem} from './draggable-list-item';
 import {
     IDraggableFlatListProps, IDraggableFlatListState, AnimatableListItem, ItemMeasure, ItemMeasurableRef
 } from './draggable-list.models';
+import {KeyboardSpacer} from './keyboard-spacer';
 
 
 export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatListProps, IDraggableFlatListState> {
@@ -54,24 +54,30 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
             return <View/>;
         }
 
-        return <View ref={ref => this.measureFlatListContainerContainer(ref)}
-                     onLayout={() => {
-                     }}
-                     style={{position: 'relative', flex: 1}}
-                     {...this._panResponder.panHandlers}>
-            <KeyboardAwareFlatList {...this.props}
-                                   innerRef={ref => {
-                                       this._flatListRef = ref;
-                                   }}
-                                   scrollEnabled={!this.state.activeDraggingItem}
-                                   data={this.state.items}
-                                   onScroll={({nativeEvent}) => {
-                                       this._scrollOffset = nativeEvent.contentOffset['y'];
-                                   }}
-                                   onViewableItemsChanged={this.handleVisibleItemsChanged}
-                                   keyExtractor={(it, index) => this.props.keyExtractor(it.itemRef, index)}
-                                   renderItem={info => this.renderItem(info)}/>
-            {this.renderDraggedItem()}
+
+        return <View style={{flex: 1}}>
+            <View ref={ref => this.measureFlatListContainerContainer(ref)}
+                  onLayout={() => {
+                  }}
+                  style={{position: 'relative', flex: 1}}
+                  {...this._panResponder.panHandlers}>
+                <FlatList {...this.props}
+                          keyboardShouldPersistTaps='handled'
+                          keyboardDismissMode='interactive'
+                          ref={ref => {
+                              this._flatListRef = ref;
+                          }}
+                          scrollEnabled={!this.state.activeDraggingItem}
+                          data={this.state.items}
+                          onScroll={({nativeEvent}) => {
+                              this._scrollOffset = nativeEvent.contentOffset['y'];
+                          }}
+                          onViewableItemsChanged={this.handleVisibleItemsChanged}
+                          keyExtractor={(it, index) => this.props.keyExtractor(it.itemRef, index)}
+                          renderItem={info => this.renderItem(info)}/>
+                {this.renderDraggedItem()}
+            </View>
+            <KeyboardSpacer/>
         </View>;
     }
 
