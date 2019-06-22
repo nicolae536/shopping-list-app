@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Checklists",
-    "slug": "shopping-list-app",
+    "name": "Notes list app",
+    "slug": "notes-list-app",
     "privacy": "public",
     "sdkVersion": "33.0.0",
     "platforms": [
@@ -31,7 +31,7 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundImage": "./assets/icon-background-android.png"
       },
-      "package": "com.funhomeprojectsnic.checklistappnicu"
+      "package": "com.funhomeprojectsnic.noteslistappnicu"
     }
   }
 }
