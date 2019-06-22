@@ -163,9 +163,6 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         this.draggingAnimationRef.start(() => {
             this.draggingAnimationRef = null;
         });
-        // !!this._localRefs[it.index] && this._localRefs[it.index].measure((x, y, width, height, pageX, pageY) => {
-        //
-        // });
     }
 
     private handleVisibleItemsChanged = (info: { viewableItems: Array<ViewToken>; changed: Array<ViewToken> }) => {
@@ -294,13 +291,20 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         const {dy, moveY, y0} = g;
 
         this._flatListRef.scrollToOffset({
-            offset: this._scrollOffset + (dy / 15),
+            offset: this._scrollOffset + (dy / 10),
             animated: false
         });
 
-        this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY}));
-        let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy, moveY, y0});
-        this.showDropSlotSpacer(moveY, y0, nextSpacerIndex);
+        // Update animation in the next frame
+        setTimeout(() => {
+            if (!this.state.activeDraggingItem) {
+                return;
+            }
+
+            this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY}));
+            let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy, moveY, y0});
+            this.showDropSlotSpacer(moveY, y0, nextSpacerIndex);
+        });
     }
 
     private getDraggedItemPositionRelativeToFlatList({moveY}: { moveY: number }) {
