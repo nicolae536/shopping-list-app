@@ -1,4 +1,5 @@
-import React, {Component} from 'react';
+import {AntDesign} from '@expo/vector-icons';
+import React, {PureComponent} from 'react';
 import {
     Animated, GestureResponderEvent, ListRenderItemInfo, PanResponder, PanResponderInstance, Vibration, View, ViewToken, LayoutAnimation,
     PanResponderGestureState, FlatList
@@ -10,7 +11,7 @@ import {
 import {KeyboardSpacer} from './keyboard-spacer';
 
 
-export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatListProps, IDraggableFlatListState> {
+export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlatListProps, IDraggableFlatListState> {
     private _localRefs: ItemMeasurableRef[];
     private _localRefsMeasures: ItemMeasure[];
     private _pixelToItemIndex: number[];
@@ -25,7 +26,6 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
 
     // Initialized variables
     private _scrollOffset: number = 0;
-    private _animatedScrollOffset: Animated.Value = new Animated.Value(0);
     private _minOffset: number = 100000;
     private _maxOffset: number = -1;
 
@@ -76,6 +76,8 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                           onViewableItemsChanged={this.handleVisibleItemsChanged}
                           keyExtractor={(it, index) => this.props.keyExtractor(it.itemRef, index)}
                           renderItem={info => this.renderItem(info)}/>
+                {this.renderTopDragArea(true)}
+                {this.renderTopDragArea(false)}
                 {this.renderDraggedItem()}
             </View>
             <KeyboardSpacer onKeyboardClosed={() => {
@@ -97,6 +99,30 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                                   }}
                                   renderItem={item => this.props.renderItem(item)}
                                   onDragStart={(it, event) => this.handleDragStart(it, event)}/>;
+    }
+
+    private renderTopDragArea(isTop: boolean) {
+        const styles: any = isTop ? {
+            top: 0
+        } : {
+            bottom: 0
+        };
+
+        return !this.state.activeDraggingItem
+            ? null
+            : <Animated.View style={[{
+                position: 'absolute',
+                height: this.state.activeDraggingItem.item.isItemDragged.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 75],
+                    extrapolate: 'clamp'
+                }),
+                width: '100%',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }, styles]}>
+                <AntDesign size={32} name={isTop ? 'arrowup' : 'arrowdown'}/>
+            </Animated.View>;
     }
 
     private renderDraggedItem() {
@@ -191,7 +217,7 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                 this.visibleItemIndexes.push(v.index);
             }
         });
-        this.updateMeasuresForVisibleItems();
+        setTimeout(() => this.updateMeasuresForVisibleItems());
     };
 
     private updateMeasuresForVisibleItems() {
@@ -267,33 +293,55 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
                 this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY: g.moveY}));
             },
             onPanResponderMove: async (e, g) => this.handlePanResponderMove(e, g),
-            onPanResponderEnd: () => this.handlePanResponderEnd()
+            onPanResponderEnd: () => requestAnimationFrame(() => this.handlePanResponderEnd()),
+            onPanResponderRelease: () => requestAnimationFrame(() => this.handlePanResponderEnd())
         });
     }
 
     private handlePanResponderMove(e: GestureResponderEvent, g: PanResponderGestureState) {
-        if (!this.state.activeDraggingItem) {
-            return;
-        }
-
         const {pageY} = e.nativeEvent;
-        const {dy, moveY, y0, vy} = g;
+        const {dy, moveY, y0} = g;
 
-        this._flatListRef.scrollToOffset({
-            offset: this._scrollOffset + (dy / 10),
-            animated: false
-        });
+        const scrollAreaHeight = 65;
+        const topScrollStart = this._containerOffset;
+        const topScrollEnd = this._containerOffset + scrollAreaHeight;
+        const bottomScrollAreaStart = this._containerOffset + this._containerSize - scrollAreaHeight;
+        const bottomScrollAreaEnd = this._containerOffset + this._containerSize;
 
-        setTimeout(() => {
+        let currentScrollOffset = this._scrollOffset;
+        console.log('t', topScrollStart, topScrollEnd);
+        console.log('b', bottomScrollAreaStart, bottomScrollAreaEnd);
+        console.log('p', pageY);
+
+        // Update animation in the next frame
+        requestAnimationFrame(() => {
             if (!this.state.activeDraggingItem) {
                 return;
             }
-            // Update animation in the next frame
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
+
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            const nextScrollOffset = this.getNextScrollOffset(pageY, topScrollStart, topScrollEnd, currentScrollOffset, bottomScrollAreaStart, bottomScrollAreaEnd);
             this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY}));
-            let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy, moveY, y0});
-            this.showDropSlotSpacer(moveY, y0, nextSpacerIndex);
-        }, 50);
+            let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy, moveY, y0, scrollOffset: nextScrollOffset});
+            this.showDropSlotSpacer(moveY, y0, nextSpacerIndex, nextScrollOffset);
+
+            if (nextScrollOffset === currentScrollOffset) {
+                return;
+            }
+            this._flatListRef.scrollToOffset({
+                offset: nextScrollOffset,
+            });
+        });
+    }
+
+    private getNextScrollOffset(pageY, topScrollStart, topScrollEnd, nextScrollOffset, bottomScrollAreaStart, bottomScrollAreaEnd) {
+        if (pageY > topScrollStart && pageY < topScrollEnd) {
+            return nextScrollOffset - 10;
+        }
+        if (pageY > bottomScrollAreaStart && pageY < bottomScrollAreaEnd) {
+            return nextScrollOffset + 10;
+        }
+        return nextScrollOffset;
     }
 
     private getDraggedItemPositionRelativeToFlatList({moveY}: { moveY: number }) {
@@ -310,13 +358,13 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         return newGesturePosition;
     }
 
-    private getHoveredComponentOffset({pageY, dy, moveY, y0}: { pageY: number, dy: number, moveY: number, y0: number }) {
+    private getHoveredComponentOffset({pageY, dy, moveY, y0, scrollOffset}: { pageY: number, dy: number, moveY: number, y0: number, scrollOffset: number }) {
         const {activeItemMeasures} = this.state;
 
         // activeItemMeasures.pageY -> item position relative to viewport
         // activeItemMeasures.pageY + this._scrollOffset -> item position relative to Flatlist
         // moveY - y0 -> gesture dy relative to screen
-        const hoveredPixelOffsetRelativeToFlatListAndDraggedElement = Math.round(activeItemMeasures.pageY + this._scrollOffset + (moveY - y0));
+        const hoveredPixelOffsetRelativeToFlatListAndDraggedElement = Math.round(activeItemMeasures.pageY + scrollOffset + (moveY - y0));
         const itemIndex = this._pixelToItemIndex[hoveredPixelOffsetRelativeToFlatListAndDraggedElement];
 
         const minItemIndex = 0;
@@ -364,7 +412,7 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         return fallbackValue;
     }
 
-    private showDropSlotSpacer(moveY: number, y0: number, nextSpacerIndex: number) {
+    private showDropSlotSpacer(moveY: number, y0: number, nextSpacerIndex: number, nextScrollOffset: number) {
         if (this.spacerIndex === nextSpacerIndex) {
             return;
         }
@@ -380,7 +428,7 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
             return;
         }
 
-        const showTopOrBottomSpacer = this.getGestureDyRelativeToFlatList(moveY, y0);
+        const showTopOrBottomSpacer = this.getGestureDyRelativeToFlatList(moveY, y0, nextScrollOffset);
         if (showTopOrBottomSpacer < 0) {
             if (nextSpacerIndex !== null && nextSpacerIndex !== undefined && this.state.items[nextSpacerIndex]) {
                 this.state.items[nextSpacerIndex].isItemHoveredTop.setValue(1);
@@ -398,12 +446,12 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         }
     }
 
-    private getGestureDyRelativeToFlatList(moveY: number, y0: number) {
+    private getGestureDyRelativeToFlatList(moveY: number, y0: number, nextScrollOffset: number) {
         // y0 -> gesture start position
         // moveY -> gesture current move
         // moveY - y0 -> gesture dy difference
         // moveY - y0 + this._scrollOffset -> gesture dy difference relative to list scroll offset
-        return moveY - y0 + this._scrollOffset;
+        return moveY - y0 + nextScrollOffset;
     }
 
     private handlePanResponderEnd() {

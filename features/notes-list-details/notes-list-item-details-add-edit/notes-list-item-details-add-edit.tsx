@@ -66,7 +66,7 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            value={this.props.textValue}/>
                     <View style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_CONTAINER}>
                         <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
-                                                  delayLongPress={100}
+                                                  delayLongPress={50}
                                                   disabled={!this.props.canDrag}
                                                   onLongPress={(event) => this.handleLongPress(event)}
                                                   onPressOut={() => this.handlePressOut()}>
