@@ -309,9 +309,6 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         const bottomScrollAreaEnd = this._containerOffset + this._containerSize;
 
         let currentScrollOffset = this._scrollOffset;
-        console.log('t', topScrollStart, topScrollEnd);
-        console.log('b', bottomScrollAreaStart, bottomScrollAreaEnd);
-        console.log('p', pageY);
 
         // Update animation in the next frame
         requestAnimationFrame(() => {
@@ -336,10 +333,10 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
 
     private getNextScrollOffset(pageY, topScrollStart, topScrollEnd, nextScrollOffset, bottomScrollAreaStart, bottomScrollAreaEnd) {
         if (pageY > topScrollStart && pageY < topScrollEnd) {
-            return nextScrollOffset - 10;
+            return nextScrollOffset - 12;
         }
         if (pageY > bottomScrollAreaStart && pageY < bottomScrollAreaEnd) {
-            return nextScrollOffset + 10;
+            return nextScrollOffset + 12;
         }
         return nextScrollOffset;
     }
