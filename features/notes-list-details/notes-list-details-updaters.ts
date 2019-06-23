@@ -65,7 +65,7 @@ export const notesListDetailsUpdate = {
             description
         });
 
-        const isLastItemEditedAndNotEmpty = description.length > 1 && itemIndex + 1 === appState.activeNotesList!.noteItems.length;
+        const isLastItemEditedAndNotEmpty = description.length >= 1 && itemIndex + 1 === appState.activeNotesList!.noteItems.length;
         if (isLastItemEditedAndNotEmpty) {
             noteItems.push(new NoteItem());
         }

@@ -25,6 +25,7 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
 
     // Initialized variables
     private _scrollOffset: number = 0;
+    private _animatedScrollOffset: Animated.Value = new Animated.Value(0);
     private _minOffset: number = 100000;
     private _maxOffset: number = -1;
 
@@ -148,6 +149,10 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
     };
 
     private async handleDragStart(it: ListRenderItemInfo<AnimatableListItem>, ev: GestureResponderEvent) {
+        if (this.state.activeDraggingItem) {
+            this.resetDraggedItemStateState();
+        }
+
         await this.updateMeasuresForVisibleItems();
         it.item.itemYPosition.setValue(ev.nativeEvent.pageY - this._containerOffset);
 
@@ -267,28 +272,28 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
     }
 
     private handlePanResponderMove(e: GestureResponderEvent, g: PanResponderGestureState) {
-        const {pageY} = e.nativeEvent;
-        const {dy, moveY, y0} = g;
-
-        const scrollValueDy = dy / 10;
-        const minScrollToAvoidFlicker = 3.5;
-        if (Math.abs(scrollValueDy) > minScrollToAvoidFlicker) {
-            this._flatListRef.scrollToOffset({
-                offset: this._scrollOffset + Math.round(scrollValueDy),
-                animated: false
-            });
+        if (!this.state.activeDraggingItem) {
+            return;
         }
 
-        // Update animation in the next frame
+        const {pageY} = e.nativeEvent;
+        const {dy, moveY, y0, vy} = g;
+
+        this._flatListRef.scrollToOffset({
+            offset: this._scrollOffset + (dy / 10),
+            animated: false
+        });
+
         setTimeout(() => {
             if (!this.state.activeDraggingItem) {
                 return;
             }
-
+            // Update animation in the next frame
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
             this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY}));
             let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy, moveY, y0});
             this.showDropSlotSpacer(moveY, y0, nextSpacerIndex);
-        });
+        }, 50);
     }
 
     private getDraggedItemPositionRelativeToFlatList({moveY}: { moveY: number }) {
@@ -371,7 +376,7 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
             this.state.items[this.spacerIndex].hoverBottomActive = false;
         }
 
-        if (nextSpacerIndex === this.state.activeDraggingItem.index) {
+        if (this.state.activeDraggingItem && nextSpacerIndex === this.state.activeDraggingItem.index) {
             return;
         }
 
@@ -402,23 +407,18 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
     }
 
     private handlePanResponderEnd() {
+        if (!this.state.activeDraggingItem) {
+            return;
+        }
+
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         if (this.spacerIndex === this.state.activeDraggingItem.index) {
-            this.state.activeDraggingItem.item.isItemDragged.setValue(0);
-            if (this.state.items[this.spacerIndex]) {
-                this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
-                this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
-            }
-            this.setState({
-                activeItemMeasures: null,
-                activeDraggingItem: null
-            });
+            this.resetDraggedItemStateState();
             return;
         }
 
         if (!this.state.items[this.spacerIndex]) {
             return;
-            ;
         }
 
         const itemRef = this.state.items[this.spacerIndex];
@@ -439,6 +439,20 @@ export class DraggableKeyboardAwareFlatList extends Component<IDraggableFlatList
         });
         setTimeout(() => {
             this.props.onItemsDropped(newItemsList.map(v => v.itemRef));
+        });
+    }
+
+    private resetDraggedItemStateState() {
+        if (this.state.activeDraggingItem) {
+            this.state.activeDraggingItem.item.isItemDragged.setValue(0);
+        }
+        if (this.state.items[this.spacerIndex]) {
+            this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
+            this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
+        }
+        this.setState({
+            activeItemMeasures: null,
+            activeDraggingItem: null
         });
     }
 
