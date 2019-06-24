@@ -288,8 +288,12 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
                 this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY: g.moveY}));
             },
             onPanResponderMove: async (e, g) => this.handlePanResponderMove(e, g),
-            onPanResponderEnd: () => requestAnimationFrame(() => this.handlePanResponderEnd()),
-            onPanResponderRelease: () => requestAnimationFrame(() => this.handlePanResponderEnd())
+            onPanResponderEnd: async (e, g) => {
+                requestAnimationFrame(() => this.handlePanResponderEnd());
+            },
+            onPanResponderRelease: async (e, g) => {
+                requestAnimationFrame(() => this.handlePanResponderEnd());
+            }
         });
     }
 
@@ -422,9 +426,12 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
             return;
         }
 
-        const showTopOrBottomSpacer = this.getGestureDyRelativeToFlatList(moveY, y0, nextScrollOffset);
-        if (showTopOrBottomSpacer < 0) {
-            if (nextSpacerIndex !== null && nextSpacerIndex !== undefined && this.state.items[nextSpacerIndex]) {
+        const dyRelativeToFlatList = this.getGestureDyRelativeToFlatList(moveY, y0, nextScrollOffset);
+        if (dyRelativeToFlatList < 0) {
+            if (this.state.activeDraggingItem.index + 1 !== nextSpacerIndex &&
+                nextSpacerIndex !== null &&
+                nextSpacerIndex !== undefined &&
+                this.state.items[nextSpacerIndex]) {
                 this.state.items[nextSpacerIndex].isItemHoveredTop.setValue(1);
                 this.state.items[nextSpacerIndex].hoverTopActive = true;
                 this.spacerIndex = nextSpacerIndex;
@@ -433,7 +440,9 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
             return;
         }
 
-        if (nextSpacerIndex !== null && nextSpacerIndex !== undefined) {
+        if (this.state.activeDraggingItem.index - 1 !== nextSpacerIndex &&
+            nextSpacerIndex !== null &&
+            nextSpacerIndex !== undefined) {
             this.state.items[nextSpacerIndex].isItemHoveredBottom.setValue(1);
             this.state.items[nextSpacerIndex].hoverBottomActive = true;
             this.spacerIndex = nextSpacerIndex;
@@ -460,6 +469,12 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         }
 
         if (!this.state.items[this.spacerIndex]) {
+            return;
+        }
+
+        if ((this.state.activeDraggingItem.index + 1 === this.spacerIndex && this.state.items[this.spacerIndex].hoverTopActive) ||
+            (this.state.activeDraggingItem.index - 1 === this.spacerIndex && this.state.items[this.spacerIndex].hoverBottomActive)) {
+            this.resetDraggedItemStateState();
             return;
         }
 
