@@ -1,13 +1,8 @@
 import {AntDesign} from '@expo/vector-icons';
 import React, {PureComponent} from 'react';
-import {
-    Animated, GestureResponderEvent, ListRenderItemInfo, PanResponder, PanResponderInstance, Vibration, View, ViewToken, LayoutAnimation,
-    PanResponderGestureState, FlatList
-} from 'react-native';
+import {Animated, FlatList, GestureResponderEvent, LayoutAnimation, ListRenderItemInfo, PanResponder, PanResponderGestureState, PanResponderInstance, Vibration, View, ViewToken} from 'react-native';
 import {DraggableListItem} from './draggable-list-item';
-import {
-    IDraggableFlatListProps, IDraggableFlatListState, AnimatableListItem, ItemMeasure, ItemMeasurableRef
-} from './draggable-list.models';
+import {AnimatableListItem, IDraggableFlatListProps, IDraggableFlatListState, ItemMeasurableRef, ItemMeasure} from './draggable-list.models';
 import {KeyboardSpacer} from './keyboard-spacer';
 
 
@@ -332,10 +327,12 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
     }
 
     private getNextScrollOffset(pageY, topScrollStart, topScrollEnd, nextScrollOffset, bottomScrollAreaStart, bottomScrollAreaEnd) {
-        if (pageY > topScrollStart && pageY < topScrollEnd) {
+        if ((pageY >= topScrollStart && pageY <= topScrollEnd) ||
+            (pageY < topScrollStart && pageY <= topScrollEnd)) {
             return nextScrollOffset - 12;
         }
-        if (pageY > bottomScrollAreaStart && pageY < bottomScrollAreaEnd) {
+        if ((pageY >= bottomScrollAreaStart && pageY <= bottomScrollAreaEnd) ||
+            (pageY >= bottomScrollAreaStart && pageY > bottomScrollAreaEnd)) {
             return nextScrollOffset + 12;
         }
         return nextScrollOffset;
@@ -348,7 +345,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
             return 0;
         }
 
-        if (newGesturePosition > this._containerOffset + this._containerSize) {
+        if (newGesturePosition > (this._containerOffset + this._containerSize)) {
             return this._containerSize;
         }
 
@@ -368,17 +365,17 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         const maxItemIndex = this.props.data.length - 1;
 
         if (itemIndex || itemIndex === 0) {
-            this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, itemIndex);
+            this.logHoveredComponent('Item found', hoveredPixelOffsetRelativeToFlatListAndDraggedElement, itemIndex);
             return itemIndex;
         }
 
         if (pageY < this._minOffset) {
-            this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, minItemIndex);
+            this.logHoveredComponent('Item outside of min offset', hoveredPixelOffsetRelativeToFlatListAndDraggedElement, minItemIndex);
             return minItemIndex;
         }
 
         if (pageY > this._maxOffset) {
-            this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, maxItemIndex);
+            this.logHoveredComponent('Item outside of max offset', hoveredPixelOffsetRelativeToFlatListAndDraggedElement, maxItemIndex);
             return maxItemIndex;
         }
 
@@ -389,7 +386,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
             }
 
             const minToReturn = this._pixelToItemIndex[cursor] || minItemIndex;
-            this.logHoveredComponent(cursor, minToReturn);
+            this.logHoveredComponent('Item found looking over near pixels bottom of the gesture', cursor, minToReturn);
             return minToReturn;
         }
 
@@ -400,12 +397,12 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
             }
 
             const maxToReturn = this._pixelToItemIndex[cursor] || maxItemIndex;
-            this.logHoveredComponent(cursor, maxToReturn);
+            this.logHoveredComponent('Item found looking over near pixels top of the gesture', cursor, maxToReturn);
             return maxToReturn;
         }
 
         const fallbackValue = dy < 0 ? minItemIndex : maxItemIndex;
-        this.logHoveredComponent(hoveredPixelOffsetRelativeToFlatListAndDraggedElement, fallbackValue);
+        this.logHoveredComponent('Could not find item showing fallback', hoveredPixelOffsetRelativeToFlatListAndDraggedElement, fallbackValue);
         return fallbackValue;
     }
 
@@ -511,7 +508,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         // console.log('min', min, '->', 'max', max, index);
     }
 
-    private logHoveredComponent(componentPixel, indexValue) {
-        // console.log('pixel -> ', componentPixel, 'index -> ', indexValue);
+    private logHoveredComponent(prefix, componentPixel, indexValue) {
+        console.log(prefix, 'pixel -> ', componentPixel, 'index -> ', indexValue);
     }
 }
