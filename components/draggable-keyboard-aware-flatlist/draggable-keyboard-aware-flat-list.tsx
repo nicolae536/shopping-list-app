@@ -1,8 +1,13 @@
 import {AntDesign} from '@expo/vector-icons';
 import React, {PureComponent} from 'react';
-import {Animated, FlatList, GestureResponderEvent, LayoutAnimation, ListRenderItemInfo, PanResponder, PanResponderGestureState, PanResponderInstance, Vibration, View, ViewToken} from 'react-native';
+import {
+    Animated, FlatList, GestureResponderEvent, LayoutAnimation, ListRenderItemInfo, PanResponder, PanResponderGestureState,
+    PanResponderInstance, Vibration, View, ViewToken
+} from 'react-native';
 import {DraggableListItem} from './draggable-list-item';
-import {AnimatableListItem, IDraggableFlatListProps, IDraggableFlatListState, ItemMeasurableRef, ItemMeasure} from './draggable-list.models';
+import {
+    AnimatableListItem, IDraggableFlatListProps, IDraggableFlatListState, ItemMeasurableRef, ItemMeasure
+} from './draggable-list.models';
 import {KeyboardSpacer} from './keyboard-spacer';
 
 
@@ -285,11 +290,13 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
             onMoveShouldSetPanResponder: () => !!this.state.activeDraggingItem,
             onMoveShouldSetPanResponderCapture: () => !!this.state.activeDraggingItem,
             onPanResponderGrant: (e, g) => {
-                this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY: g.moveY}));
+                this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({
+                    moveY: g.moveY, y0: g.y0
+                }));
             },
             onPanResponderMove: async (e, g) => this.handlePanResponderMove(e, g),
-            onPanResponderEnd: () => requestAnimationFrame(() => this.handlePanResponderEnd()),
-            onPanResponderRelease: () => requestAnimationFrame(() => this.handlePanResponderEnd())
+            onPanResponderRelease: () => requestAnimationFrame(() => this.handleGestureEnd()),
+            onPanResponderTerminate: () => requestAnimationFrame(() => this.handleGestureEnd())
         });
     }
 
@@ -313,7 +320,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
 
             LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             const nextScrollOffset = this.getNextScrollOffset(pageY, topScrollStart, topScrollEnd, currentScrollOffset, bottomScrollAreaStart, bottomScrollAreaEnd);
-            this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY}));
+            this.state.activeDraggingItem.item.itemYPosition.setValue(this.getDraggedItemPositionRelativeToFlatList({moveY, y0}));
             let nextSpacerIndex = this.getHoveredComponentOffset({pageY, dy, moveY, y0, scrollOffset: nextScrollOffset});
             this.showDropSlotSpacer(moveY, y0, nextSpacerIndex, nextScrollOffset);
 
@@ -321,7 +328,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
                 return;
             }
             this._flatListRef.scrollToOffset({
-                offset: nextScrollOffset,
+                offset: nextScrollOffset
             });
         });
     }
@@ -338,7 +345,8 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         return nextScrollOffset;
     }
 
-    private getDraggedItemPositionRelativeToFlatList({moveY}: { moveY: number }) {
+    private getDraggedItemPositionRelativeToFlatList({moveY, y0}: { moveY: number, y0: number }) {
+        const gestureDirection = moveY - y0;
         const newGesturePosition = moveY - this._containerOffset;
 
         if (newGesturePosition < 0) {
@@ -358,7 +366,9 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         // activeItemMeasures.pageY -> item position relative to viewport
         // activeItemMeasures.pageY + this._scrollOffset -> item position relative to Flatlist
         // moveY - y0 -> gesture dy relative to screen
-        const hoveredPixelOffsetRelativeToFlatListAndDraggedElement = Math.round(activeItemMeasures.pageY + scrollOffset + (moveY - y0));
+
+        const gesturePositionRelativeToFlatlist = this.getDraggedItemPositionRelativeToFlatList({moveY, y0});
+        const hoveredPixelOffsetRelativeToFlatListAndDraggedElement = Math.round(this._containerOffset + scrollOffset + gesturePositionRelativeToFlatlist);
         const itemIndex = this._pixelToItemIndex[hoveredPixelOffsetRelativeToFlatListAndDraggedElement];
 
         const minItemIndex = 0;
@@ -448,12 +458,11 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         return moveY - y0 + nextScrollOffset;
     }
 
-    private handlePanResponderEnd() {
+    private handleGestureEnd() {
         if (!this.state.activeDraggingItem) {
             return;
         }
 
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         if (this.spacerIndex === this.state.activeDraggingItem.index) {
             this.resetDraggedItemStateState();
             return;
@@ -463,25 +472,30 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
             return;
         }
 
-        const itemRef = this.state.items[this.spacerIndex];
-        const newItemsList = this.state.items.filter(v => v !== this.state.activeDraggingItem.item);
-        const newSpacerIndex = newItemsList.indexOf(itemRef);
-        newItemsList.splice(
-            newSpacerIndex > this.state.activeDraggingItem.index ? newSpacerIndex + 1 : newSpacerIndex,
-            0,
-            this.state.activeDraggingItem.item);
+        const newItemsList = [];
+        this.state.items.forEach((v, idx) => {
+            if (this.state.activeDraggingItem.item === v) {
+                return;
+            }
+            if (idx === this.spacerIndex && this.state.items[this.spacerIndex].hoverTopActive) {
+                newItemsList.push(this.state.activeDraggingItem.item);
+            }
+            newItemsList.push(v);
+            if (idx === this.spacerIndex && this.state.items[this.spacerIndex].hoverBottomActive) {
+                newItemsList.push(this.state.activeDraggingItem.item);
+            }
+        });
 
         this.state.activeDraggingItem.item.isItemDragged.setValue(0);
         this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
         this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         this.setState({
             activeItemMeasures: null,
             activeDraggingItem: null,
             items: newItemsList
         });
-        setTimeout(() => {
-            this.props.onItemsDropped(newItemsList.map(v => v.itemRef));
-        });
+        this.props.onItemsDropped(newItemsList.map(v => v.itemRef));
     }
 
     private resetDraggedItemStateState() {
@@ -492,6 +506,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
             this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
             this.state.items[this.spacerIndex].isItemHoveredBottom.setValue(0);
         }
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         this.setState({
             activeItemMeasures: null,
             activeDraggingItem: null
@@ -509,6 +524,6 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
     }
 
     private logHoveredComponent(prefix, componentPixel, indexValue) {
-        console.log(prefix, 'pixel -> ', componentPixel, 'index -> ', indexValue);
+        // console.log(prefix, 'pixel -> ', componentPixel, 'index -> ', indexValue);
     }
 }
