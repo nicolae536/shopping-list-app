@@ -40,7 +40,7 @@ export class KeyboardSpacer extends Component<IKeyboardSpacer, { keyboardHeight:
 
         this.closeAnimation = Animated.timing(this.state.keyboardHeight, {
             toValue: 0,
-            duration: 50
+            duration: 50,
         });
 
         this.closeAnimation.start(() => {

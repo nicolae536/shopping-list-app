@@ -66,6 +66,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
                           ref={ref => {
                               this._flatListRef = ref;
                           }}
+                          scrollEventThrottle={1}
                           keyboardDismissMode={'interactive'}
                           keyboardShouldPersistTaps={'handled'}
                           scrollEnabled={!this.state.activeDraggingItem}
@@ -304,7 +305,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         const {pageY} = e.nativeEvent;
         const {dy, moveY, y0} = g;
 
-        const scrollAreaHeight = 65;
+        const scrollAreaHeight = 100;
         const topScrollStart = this._containerOffset;
         const topScrollEnd = this._containerOffset + scrollAreaHeight;
         const bottomScrollAreaStart = this._containerOffset + this._containerSize - scrollAreaHeight;
@@ -336,11 +337,11 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
     private getNextScrollOffset(pageY, topScrollStart, topScrollEnd, nextScrollOffset, bottomScrollAreaStart, bottomScrollAreaEnd) {
         if ((pageY >= topScrollStart && pageY <= topScrollEnd) ||
             (pageY < topScrollStart && pageY <= topScrollEnd)) {
-            return nextScrollOffset - 12;
+            return nextScrollOffset - 8;
         }
         if ((pageY >= bottomScrollAreaStart && pageY <= bottomScrollAreaEnd) ||
             (pageY >= bottomScrollAreaStart && pageY > bottomScrollAreaEnd)) {
-            return nextScrollOffset + 12;
+            return nextScrollOffset + 8;
         }
         return nextScrollOffset;
     }
