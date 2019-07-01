@@ -63,6 +63,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
                   style={{position: 'relative', flex: 1}}
                   {...this._panResponder.panHandlers}>
                 <FlatList {...this.props}
+                          style={{flex: 1}}
                           ref={ref => {
                               this._flatListRef = ref;
                           }}

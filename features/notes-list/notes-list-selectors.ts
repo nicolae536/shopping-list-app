@@ -13,7 +13,7 @@ export class ViewNoteItem {
         this._visibleItems = [
             ...noteItemRef.noteItems.filter(v => !v.isEmpty),
             ...noteItemRef.doneNoteItems.filter(v => !v.isEmpty)
-        ]
+        ].splice(0, 6);
     }
 }
 

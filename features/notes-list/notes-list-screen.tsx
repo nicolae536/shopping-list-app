@@ -53,7 +53,7 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
                 }}
                                                 style={{flex: 1}}
                                                 enableOnAndroid={true}
-                                                keyExtractor={(item) => item.uuid}
+                                                keyExtractor={(item) => item.noteItemRef.uuid}
                                                 getItemLayout={(
                                                     data: any,
                                                     index: number
