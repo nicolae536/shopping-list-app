@@ -1,6 +1,6 @@
 import {View, Text} from 'native-base';
 import {PureComponent, default as React} from 'react';
-import {TouchableOpacity, Dimensions} from 'react-native';
+import {TouchableOpacity, Dimensions, GestureResponderEvent} from 'react-native';
 import {loggerInstance} from '../../components/logger';
 import {SwipeActions} from '../../components/swipe-to-remove/swipe-actions';
 import {NotesList} from '../../domain/notes-list';
@@ -8,9 +8,10 @@ import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {NoteListItemViewStyles} from './note-list-item-view.styles';
 
 interface NoteListItemViewProps {
-    item: NotesList,
-    onTap?: () => void,
-    onRemove?: () => void
+    item: NotesList;
+    onTap?: () => void;
+    onRemove?: () => void;
+    onLongPress?: (ev: GestureResponderEvent) => void;
 }
 
 interface NoteListItemViewState {
@@ -28,6 +29,7 @@ export class NoteListItemView extends PureComponent<NoteListItemViewProps, NoteL
 
     render() {
         return <SwipeActions elementWidth={this.state.elWidth}
+                             enableSwipe={true}
                              elementBackgroundColor={NATIVE_BASE_THEME.variables.cardDefaultBg}
                              elementSwipingBackgroundColor={NATIVE_BASE_THEME.variables.brandDanger}
                              actionIcon={'delete'}
@@ -35,9 +37,18 @@ export class NoteListItemView extends PureComponent<NoteListItemViewProps, NoteL
                              onSwipeEnd={() => this.handleRemove()}>
             <View style={NoteListItemViewStyles.LIST_ITEM_CARD_WRAPPER}>
                 <TouchableOpacity onPress={() => this.handlePress()}
+                                  delayLongPress={100}
+                                  onLongPress={(ev) => this.handleLongPress(ev)}
                                   style={NoteListItemViewStyles.LIST_ITEM_CARD}>
                     <View>
-                        <View style={NoteListItemViewStyles.LIST_ITEM_CONTENT_TITLE}><Text>{this.props.item.title}</Text></View>
+                        <View style={NoteListItemViewStyles.LIST_ITEM_CONTENT_TITLE}>
+                            <View>
+                                <Text>{this.props.item.title}</Text>
+                            </View>
+                            <View>
+                                <Text>{this.props.item.created.toLocaleDateString()}</Text>
+                            </View>
+                        </View>
                         <View style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD}>
                             {
                                 this.props.item.noteItems.map(it => <Text style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD_ITEM}
@@ -64,6 +75,12 @@ export class NoteListItemView extends PureComponent<NoteListItemViewProps, NoteL
         loggerInstance.log('NoteListItemView', 'onRemove');
         if (this.props.onRemove) {
             this.props.onRemove();
+        }
+    }
+
+    private handleLongPress(ev) {
+        if (this.props.onLongPress) {
+            this.props.onLongPress(ev);
         }
     }
 }

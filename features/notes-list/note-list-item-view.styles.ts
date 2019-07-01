@@ -20,6 +20,7 @@ export const NoteListItemViewStyles = StyleSheet.create({
     LIST_ITEM_CARD_WRAPPER: {
         paddingLeft: 15,
         paddingRight: 15,
+        minHeight: 89
     },
     LIST_ITEM_CARD: {
         flexDirection: 'column',
@@ -28,6 +29,8 @@ export const NoteListItemViewStyles = StyleSheet.create({
         borderBottomWidth: StyleSheet.hairlineWidth
     },
     LIST_ITEM_CONTENT_TITLE: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         paddingTop: 7,
         paddingBottom: 2
     },
