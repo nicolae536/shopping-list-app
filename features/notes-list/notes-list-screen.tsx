@@ -1,4 +1,4 @@
-import {Container, Content, Fab, Icon, Text} from 'native-base';
+import {Container, Fab, Icon, Text} from 'native-base';
 import * as React from 'react';
 import {PanResponderInstance, PanResponder} from 'react-native';
 import {NavigationInjectedProps} from 'react-navigation';
@@ -6,16 +6,15 @@ import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {DraggableKeyboardAwareFlatList} from '../../components/draggable-keyboard-aware-flatlist/draggable-keyboard-aware-flat-list';
 import {loggerInstance} from '../../components/logger';
-import {NotesList} from '../../domain/notes-list';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {getNavigationOptions} from '../navigation/app-navigation-header';
 import {NoteListItemView} from './note-list-item-view';
-import {notesListSelectors} from './notes-list-selectors';
+import {notesListSelectors, ViewNoteItem} from './notes-list-selectors';
 import {notesListUpdaters} from './notes-list-updaters';
 
 interface IAppState {
     loading: boolean;
-    notesList: NotesList[];
+    notesList: ViewNoteItem[];
 }
 
 export default class NotesListScreen extends React.Component<NavigationInjectedProps, IAppState> {
@@ -49,27 +48,26 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
 
         return (
             <Container>
-                <Content>
-                    <DraggableKeyboardAwareFlatList onItemsDropped={() => {
-                    }}
-                                                    style={{flex: 1}}
-                                                    enableOnAndroid={true}
-                                                    keyExtractor={(item) => item.uuid}
-                                                    getItemLayout={(
-                                                        data: any,
-                                                        index: number
-                                                    ) => {
-                                                        return {length: 89, offset: 89 * index, index: index};
-                                                    }}
-                                                    renderItem={({item, index, dragStart}) => {
-                                                        return <NoteListItemView item={item}
-                                                                                 key={item.uuid}
-                                                                                 onLongPress={dragStart}
-                                                                                 onRemove={() => notesListUpdaters.removeItem(item)}
-                                                                                 onTap={() => navigate('ItemDetails', {id: item.uuid})}/>;
-                                                    }}
-                                                    data={this.state.notesList}/>
-                </Content>
+                <DraggableKeyboardAwareFlatList onItemsDropped={(items) => {
+                    notesListUpdaters.updateItemsOrder(items);
+                }}
+                                                style={{flex: 1}}
+                                                enableOnAndroid={true}
+                                                keyExtractor={(item) => item.uuid}
+                                                getItemLayout={(
+                                                    data: any,
+                                                    index: number
+                                                ) => {
+                                                    return {length: 89, offset: 89 * index, index: index};
+                                                }}
+                                                renderItem={({item, index, dragStart}) => {
+                                                    return <NoteListItemView item={item}
+                                                                             key={item.uuid}
+                                                                             onLongPress={dragStart}
+                                                                             onRemove={() => notesListUpdaters.removeItem(item)}
+                                                                             onTap={() => navigate('ItemDetails', {id: item.uuid})}/>;
+                                                }}
+                                                data={this.state.notesList}/>
                 <Fab
                     active={true}
                     direction="up"

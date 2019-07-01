@@ -31,17 +31,13 @@ export class StateContainer {
         return this.appState.pipe(filter(c => c !== null));
     }
 
-    public select$<T, U>(selector: (selectFn: AppStateModel) => T, mapFn?: (map: T) => U) {
+    public select$<T, U>(selector: (selectFn: AppStateModel) => T, mapFn: (map: T) => U) {
         return this.isReady$()
             .pipe(
                 map(appState => selector(appState)),
                 distinctUntilChanged(),
                 map(value => {
-                    if (mapFn instanceof Function) {
-                        return mapFn(value) as U;
-                    }
-
-                    return value as T;
+                    return mapFn(value) as U;
                 })
             );
     }

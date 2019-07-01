@@ -6,9 +6,10 @@ import {SwipeActions} from '../../components/swipe-to-remove/swipe-actions';
 import {NotesList} from '../../domain/notes-list';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {NoteListItemViewStyles} from './note-list-item-view.styles';
+import {ViewNoteItem} from './notes-list-selectors';
 
 interface NoteListItemViewProps {
-    item: NotesList;
+    item: ViewNoteItem;
     onTap?: () => void;
     onRemove?: () => void;
     onLongPress?: (ev: GestureResponderEvent) => void;
@@ -43,15 +44,15 @@ export class NoteListItemView extends PureComponent<NoteListItemViewProps, NoteL
                     <View>
                         <View style={NoteListItemViewStyles.LIST_ITEM_CONTENT_TITLE}>
                             <View>
-                                <Text>{this.props.item.title}</Text>
+                                <Text>{this.props.item.noteItemRef.title}</Text>
                             </View>
                             <View>
-                                <Text>{this.props.item.created.toLocaleDateString()}</Text>
+                                <Text>{this.props.item.noteItemRef.created.toLocaleDateString()}</Text>
                             </View>
                         </View>
                         <View style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD}>
                             {
-                                this.props.item.noteItems.map(it => <Text style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD_ITEM}
+                                this.props.item.visibleItems.map(it => <Text style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD_ITEM}
                                                                           note
                                                                           key={it.uuid}>
                                     {it.description}
