@@ -6,7 +6,8 @@ export const Translations = {
             DONE_TILE: 'Done Items',
             NOT_DONE_TILE: 'Not Done Items',
             ADD_NEW_ITEM: 'Add new item...',
-        }
+        },
+        DROP_ITEM_PLACEHOLDER: 'Drop here'
     }
 };
 

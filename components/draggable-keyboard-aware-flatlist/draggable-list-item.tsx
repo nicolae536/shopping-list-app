@@ -1,9 +1,11 @@
 import React, {PureComponent} from 'react';
-import {Animated, View, GestureResponderEvent, ListRenderItemInfo} from 'react-native';
+import {Animated, View, GestureResponderEvent, ListRenderItemInfo, Text} from 'react-native';
+import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {AnimatableListItem, IDraggableItem} from './draggable-list.models';
 
 export class DraggableListItem extends PureComponent<{
     itemDef: ListRenderItemInfo<AnimatableListItem>,
+    dropItemPlaceholder: string;
     setItemRef(ref: any);
     renderItem(item: IDraggableItem);
     onDragStart(item: ListRenderItemInfo<AnimatableListItem>, event: GestureResponderEvent);
@@ -18,12 +20,12 @@ export class DraggableListItem extends PureComponent<{
         const possibleDragStyles = this.getDragItemStyles(this.props.itemDef);
 
         return <Animated.View style={possibleDragStyles}>
-            {this.renderSpacer(this.props.itemDef)}
             <View onLayout={({nativeEvent}) => {
             }}
                   ref={ref => {
                       this.props.setItemRef(ref);
                   }}>
+                {this.renderSpacer(this.props.itemDef)}
                 {this.props.renderItem({
                     index: this.props.itemDef.index,
                     item: this.props.itemDef.item.itemRef,
@@ -65,8 +67,21 @@ export class DraggableListItem extends PureComponent<{
                 inputRange: [0, 1],
                 outputRange: [0, 65],
                 extrapolate: 'clamp'
-            })
+            }),
+            overflow: 'hidden'
         }}>
+            <View style={{
+                flex: 1,
+                borderWidth: 1,
+                borderColor: NATIVE_BASE_THEME.variables.accordionBorderColor,
+                margin: 5,
+                borderStyle: 'dashed',
+                borderRadius: 1,
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                <Text>{this.props.dropItemPlaceholder}</Text>
+            </View>
         </Animated.View>;
     }
 
@@ -76,8 +91,21 @@ export class DraggableListItem extends PureComponent<{
                 inputRange: [0, 1],
                 outputRange: [0, 65],
                 extrapolate: 'clamp'
-            })
+            }),
+            overflow: 'hidden'
         }}>
+            <View style={{
+                flex: 1,
+                borderWidth: 1,
+                borderColor: NATIVE_BASE_THEME.variables.accordionBorderColor,
+                margin: 5,
+                borderStyle: 'dashed',
+                borderRadius: 1,
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                <Text>{this.props.dropItemPlaceholder}</Text>
+            </View>
         </Animated.View>;
     }
 }

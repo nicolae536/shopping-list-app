@@ -96,6 +96,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
 
     private renderItem(it: ListRenderItemInfo<AnimatableListItem>): React.ReactElement | null {
         return <DraggableListItem itemDef={it}
+                                  dropItemPlaceholder={this.props.dropItemPlaceholder}
                                   setItemRef={(ref) => {
                                       this._localRefs[it.index] = ref;
                                   }}
@@ -171,6 +172,16 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
                 ref.measure((x, y, width, height, pageX, pageY) => {
                     this._containerOffset = pageY;
                     this._containerSize = height;
+
+                    if (this.props.getItemLayout) {
+                        this._pixelToItemIndex = [];
+                        for (let itemIndex = 0; itemIndex < this.props.data.length; itemIndex++) {
+                            const itLayout = this.props.getItemLayout(this.props.data as any[], itemIndex);
+                            for (let pixIn = itLayout.offset; pixIn < itLayout.offset + itLayout.length; pixIn++) {
+                                this._pixelToItemIndex[this._containerOffset + pixIn] = itemIndex;
+                            }
+                        }
+                    }
                 });
             }, 50);
         }
@@ -363,8 +374,6 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
     }
 
     private getHoveredComponentOffset({pageY, dy, moveY, y0, scrollOffset}: { pageY: number, dy: number, moveY: number, y0: number, scrollOffset: number }) {
-        const {activeItemMeasures} = this.state;
-
         // activeItemMeasures.pageY -> item position relative to viewport
         // activeItemMeasures.pageY + this._scrollOffset -> item position relative to Flatlist
         // moveY - y0 -> gesture dy relative to screen
@@ -431,6 +440,7 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         }
 
         if (this.state.activeDraggingItem && nextSpacerIndex === this.state.activeDraggingItem.index) {
+            this.spacerIndex = nextSpacerIndex;
             return;
         }
 
@@ -475,18 +485,25 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         }
 
         const newItemsList = [];
+        let wasItemPushed = false;
         this.state.items.forEach((v, idx) => {
             if (this.state.activeDraggingItem.item === v) {
                 return;
             }
             if (idx === this.spacerIndex && this.state.items[this.spacerIndex].hoverTopActive) {
                 newItemsList.push(this.state.activeDraggingItem.item);
+                wasItemPushed = true;
             }
             newItemsList.push(v);
             if (idx === this.spacerIndex && this.state.items[this.spacerIndex].hoverBottomActive) {
                 newItemsList.push(this.state.activeDraggingItem.item);
+                wasItemPushed = true;
             }
         });
+
+        if (!wasItemPushed) {
+            newItemsList.push(this.state.activeDraggingItem.item);
+        }
 
         this.state.activeDraggingItem.item.isItemDragged.setValue(0);
         this.state.items[this.spacerIndex].isItemHoveredTop.setValue(0);
@@ -519,6 +536,10 @@ export class DraggableKeyboardAwareFlatList extends PureComponent<IDraggableFlat
         this._localRefs = [];
         this._localRefsMeasures = [];
         this._pixelToItemIndex = [];
+
+        if (this.props.getItemLayout) {
+
+        }
     }
 
     private logPixelsArrayDetails(min, max, index) {

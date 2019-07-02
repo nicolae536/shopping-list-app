@@ -7,6 +7,7 @@ import {DraggableKeyboardAwareFlatList} from '../../../components/draggable-keyb
 import {loggerInstance} from '../../../components/logger';
 import {NotesList} from '../../../domain/notes-list';
 import {stateContainer} from '../../../domain/state-container';
+import {Translations} from '../../../domain/translations';
 import {notesListDetailsSelectors} from '../notes-list-details-selectors';
 import {notesListDetailsUpdate} from '../notes-list-details-updaters';
 import {NotesListDetailsScreenStyle} from '../notes-list-detils-screen.style';
@@ -44,6 +45,7 @@ export class NotesListDetailsDone extends PureComponent<INotesListDetailsDonePro
                                       style={{flex: 1}}
                                       enableOnAndroid={true}
                                       extraScrollHeight={150}
+                                      dropItemPlaceholder={Translations.en.DROP_ITEM_PLACEHOLDER}
                                       keyExtractor={(item) => item.uuid}
                                       onItemsDropped={(list) => notesListDetailsUpdate.updateDoneNotesListOrder(list)}
                                       renderItem={({item, index, dragStart}) => {

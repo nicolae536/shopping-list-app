@@ -3,7 +3,6 @@ import {PureComponent, default as React} from 'react';
 import {TouchableOpacity, Dimensions, GestureResponderEvent} from 'react-native';
 import {loggerInstance} from '../../components/logger';
 import {SwipeActions} from '../../components/swipe-to-remove/swipe-actions';
-import {NotesList} from '../../domain/notes-list';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {NoteListItemViewStyles} from './note-list-item-view.styles';
 import {ViewNoteItem} from './notes-list-selectors';
@@ -53,8 +52,8 @@ export class NoteListItemView extends PureComponent<NoteListItemViewProps, NoteL
                         <View style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD}>
                             {
                                 this.props.item.visibleItems.map(it => <Text style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD_ITEM}
-                                                                          note
-                                                                          key={it.uuid}>
+                                                                             note
+                                                                             key={it.uuid}>
                                     {it.description}
                                 </Text>)
                             }

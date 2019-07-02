@@ -7,7 +7,7 @@ export interface IDraggableItem extends ListRenderItemInfo<any> {
 
 export interface IDraggableFlatListProps extends KeyboardAwareFlatListProps<any> {
     keyboardVerticalOffset?: number;
-
+    dropItemPlaceholder?: string;
     onItemsDropped(it: any[]);
 
     renderItem(item: IDraggableItem);

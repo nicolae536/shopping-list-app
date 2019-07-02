@@ -6,6 +6,7 @@ import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {DraggableKeyboardAwareFlatList} from '../../components/draggable-keyboard-aware-flatlist/draggable-keyboard-aware-flat-list';
 import {loggerInstance} from '../../components/logger';
+import {Translations} from '../../domain/translations';
 import {NATIVE_BASE_THEME} from '../../styles/variables';
 import {getNavigationOptions} from '../navigation/app-navigation-header';
 import {NoteListItemView} from './note-list-item-view';
@@ -60,12 +61,13 @@ export default class NotesListScreen extends React.Component<NavigationInjectedP
                                                 ) => {
                                                     return {length: 89, offset: 89 * index, index: index};
                                                 }}
+                                                dropItemPlaceholder={Translations.en.DROP_ITEM_PLACEHOLDER}
                                                 renderItem={({item, index, dragStart}) => {
                                                     return <NoteListItemView item={item}
-                                                                             key={item.uuid}
+                                                                             key={item.noteItemRef.uuid}
                                                                              onLongPress={dragStart}
-                                                                             onRemove={() => notesListUpdaters.removeItem(item)}
-                                                                             onTap={() => navigate('ItemDetails', {id: item.uuid})}/>;
+                                                                             onRemove={() => notesListUpdaters.removeItem(item.noteItemRef)}
+                                                                             onTap={() => navigate('ItemDetails', {id: item.noteItemRef.uuid})}/>;
                                                 }}
                                                 data={this.state.notesList}/>
                 <Fab
