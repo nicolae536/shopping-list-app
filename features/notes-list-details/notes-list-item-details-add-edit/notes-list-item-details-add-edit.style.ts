@@ -27,7 +27,7 @@ export const NotesListItemDetailsAddEditStyle = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 58,
+    width: 70,
     height: 64,
   },
   DRAG_HANDLE_CONTAINER: {

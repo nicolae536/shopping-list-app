@@ -7,9 +7,9 @@ export const NoteListItemViewStyles = StyleSheet.create({
         flexShrink: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingTop: 5,
-        paddingBottom: 5,
+        padding: 5,
         flexBasis: '33%'
+
     },
 
     LIST_ITEM_CONTENT_CHILD: {

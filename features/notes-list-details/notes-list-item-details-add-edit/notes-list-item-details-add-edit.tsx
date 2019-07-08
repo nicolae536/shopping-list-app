@@ -1,8 +1,8 @@
 // import {} from 'react-native-vector-icons/dist/lib';
 import {MaterialCommunityIcons} from '@expo/vector-icons';
-import {Button, CheckBox, Form, Input, ListItem, View} from 'native-base';
+import {Button, CheckBox, Form, Input, ListItem} from 'native-base';
 import * as React from 'react';
-import {Dimensions, TouchableWithoutFeedback, GestureResponderEvent} from 'react-native';
+import {Dimensions, GestureResponderEvent} from 'react-native';
 import {SwipeActions} from '../../../components/swipe-to-remove/swipe-actions';
 import {NATIVE_BASE_THEME} from '../../../styles/variables';
 import {NotesListItemDetailsAddEditStyle} from './notes-list-item-details-add-edit.style';
@@ -64,16 +64,15 @@ export class NotesListItemDetailsAddEdit extends React.Component<INotesListItemD
                            onBlur={() => this.onBlur()}
                            placeholder={this.props.textPlaceholder || ''}
                            value={this.props.textValue}/>
-                    <View style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_CONTAINER}>
-                        <TouchableWithoutFeedback style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
-                                                  delayLongPress={50}
-                                                  disabled={!this.props.canDrag}
-                                                  onLongPress={(event) => this.handleLongPress(event)}
-                                                  onPressOut={() => this.handlePressOut()}>
-                            <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
-                                                    name={'arrow-split-horizontal'}/>
-                        </TouchableWithoutFeedback>
-                    </View>
+                    <Button style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE}
+                            transparent
+                            delayLongPress={50}
+                            disabled={!this.props.canDrag}
+                            onLongPress={(event) => this.handleLongPress(event)}
+                            onPressOut={() => this.handlePressOut()}>
+                        <MaterialCommunityIcons style={NotesListItemDetailsAddEditStyle.DRAG_HANDLE_ICON} size={32}
+                                                name={'arrow-split-horizontal'}/>
+                    </Button>
                 </Form>
             </ListItem>
         </SwipeActions>;

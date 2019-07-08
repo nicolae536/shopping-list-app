@@ -37,7 +37,7 @@ export class NoteListItemView extends PureComponent<NoteListItemViewProps, NoteL
                              onSwipeEnd={() => this.handleRemove()}>
             <View style={NoteListItemViewStyles.LIST_ITEM_CARD_WRAPPER}>
                 <TouchableOpacity onPress={() => this.handlePress()}
-                                  delayLongPress={100}
+                                  delayLongPress={300}
                                   onLongPress={(ev) => this.handleLongPress(ev)}
                                   style={NoteListItemViewStyles.LIST_ITEM_CARD}>
                     <View>
@@ -52,6 +52,7 @@ export class NoteListItemView extends PureComponent<NoteListItemViewProps, NoteL
                         <View style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD}>
                             {
                                 this.props.item.visibleItems.map(it => <Text style={NoteListItemViewStyles.LIST_ITEM_CONTENT_CHILD_ITEM}
+                                                                             numberOfLines={1}
                                                                              note
                                                                              key={it.uuid}>
                                     {it.description}
